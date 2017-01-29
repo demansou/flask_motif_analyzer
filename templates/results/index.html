@@ -1,0 +1,16 @@
+{% extends 'base_template.html' %}
+
+{% block title %}Analysis Results{% endblock %}
+
+{% block pageheader %}<h1>Analysis Results<br><small>This page displays the results of the motif analysis on the requested sequence collections.</small></h1>{% endblock %}
+
+{% block content %}
+    <div class="well">
+        <h3>Analysis Details</h3>
+        <p><strong>Motifs:</strong> {{ motifs }}</p>
+        <p><strong>Number of Sequences:</strong> {{ sequence_count }}</p>
+        <p><strong>Analysis Completed:</strong><span id="analysis_completed"></span></p>
+    </div>
+{% endblock %}
+
+{% block script %}{% endblock %}

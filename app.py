@@ -199,5 +199,32 @@ def form_options():
             sequence_count += len(collection_query['collection'])
         return render_template('/options/index.html', motifs=motifs, sequence_count=sequence_count)
 
+
+@app.route('/results/', methods=['GET'])
+def results():
+    query_id = helpers.convert_string_id_to_bson_objectid(request.cookies.get('query_id'))
+    query = mongo.db.query.find_one({'_id': query_id})
+    motif_list = []
+    sequence_count = 0
+    # list motifs as string
+    for motif_id in query['motif_list']:
+        motif_query = mongo.db.motif.find_one({'_id': motif_id})
+        motif_list.append(motif_query['sequence_motif'])
+    motifs = ', '.join(motif_list)
+    # count sequences
+    for collection_id in query['collection_list']:
+        collection_query = mongo.db.collection.find_one({'_id': collection_id})
+        sequence_count += len(collection_query['collection'])
+    ##############################
+    # NEED TO START ANALYSIS HERE#
+    ##############################
+    return render_template('/results/index.html', motifs=motifs, sequence_count=sequence_count)
+
+
+@app.route('/status/', methods=['GET'])
+def status():
+    # for getting status updates from javascript
+    return True
+
 if __name__ == '__main__':
     app.run()
