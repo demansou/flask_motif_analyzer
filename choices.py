@@ -20,3 +20,7 @@ AMINOACID_CHOICES = (
     ('D', 'D - Aspartic Acid'),
     ('T', 'T - Threonine')
 )
+
+INPUT_TYPES = (
+    (0, 'FASTA'),
+)

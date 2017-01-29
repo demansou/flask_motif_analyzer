@@ -1,27 +1,22 @@
 {% extends 'base_template.html' %}
 
-{% block title %}Select Motif(s){% endblock %}
+{% block title %}Select Sequence Collection(s){% endblock %}
 
-{% block pageheader %}<h1>Select Motif(s)<br><small>Select previously created motif(s) to analyze sequence collections with.</small></h1>{% endblock %}
+{% block pageheader %}<h1>Select Sequence Collection(s)<br><small>Select previously created collections(s) to analyze.</small></h1>{% endblock %}
 
 {% block content %}
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
-    <form action="/form/motif/select/" class="form-horizontal" method="post">
-        {% for motif in query %}
+    <form action="/form/sequences/select/" class="form-horizontal" method="post">
+        {% for collection in query %}
             <div class="col-sm-5 col-sm-offset-1 col-xs-12">
                 <div class="[ form-group ]">
-                    <input type="checkbox" id="motif_list_{{ loop.index0 }}" name="motif_list[]" value="{{ motif['_id'] }}" />
+                    <input type="checkbox" id="collection_list_{{ loop.index0 }}" name="collection_list[]" value="{{ collection['_id'] }}" />
                     <div class="[ btn-group ]">
-                        <label for="motif_list_{{ loop.index0 }}" class="[ btn btn-primary ]">
+                        <label for="collection_list_{{ loop.index0 }}" class="[ btn btn-primary ]">
                             <span class="[ glyphicon glyphicon-ok ]"></span>
                             <span></span>
                         </label>
-                        <label class="[ btn btn-default ]" for="motif_list_{{ loop.index0 }}">
-                            {{ motif['sequence_motif'] }}
+                        <label class="[ btn btn-default ]" for="collection_list_{{ loop.index0 }}">
+                            {{ collection['collection_name'] }}
                         </label>
                     </div>
                 </div>
@@ -30,7 +25,7 @@
         <div class="col-sm-11 col-sm-offset-1 col-xs-12 top30">
             <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
             <div class="top30">
-                <a class="btn btn-default btn-block btn-lg" href="/form/motif/">Go Back</a>
+                <a class="btn btn-default btn-block btn-lg" href="/form/sequences/">Go Back</a>
             </div>
             <div class="top15">
                 <button type="reset" class="btn btn-danger btn-block btn-lg">Clear Form</button>

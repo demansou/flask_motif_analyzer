@@ -1,0 +1,45 @@
+{% extends 'base_template.html' %}
+
+{% block title %}Analysis Options{% endblock %}
+
+{% block pageheader %}<h1>Analysis Options<br><small>Select analysis frequency and reference frame size.</small></h1>{% endblock %}
+
+{% block content %}
+    <form action="/form/options/" class="form-horizontal" method="post">
+        <div class="form-group">
+            <label for="motifs" class="col-xs-3">Analysis Motifs</label>
+            <div class="col-xs-9">
+                <input type="text" class="form-control" id="motifs" name="motifs" value="{{ motifs }}" readonly>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="collections" class="col-xs-3">Sequences To Analyze</label>
+            <div class="col-xs-9">
+                <input class="form-control" id="collections" name="collections" value="{{ sequence_count }}" readonly>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="motif_frequency" class="col-xs-3">Motif Frequency</label>
+            <div class="col-xs-9">
+                <input type="number" class="form-control" id="motif_frequency" name="motif_frequency" min="2" max="10">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="motif_frame_size" class="col-xs-3">Motif Frame Size</label>
+            <div class="col-xs-9">
+                <input type="number" class="form-control" id="motif_frame_size" name="motif_frame_size" min="10" max="1000">
+            </div>
+        </div>
+        <div class="form-group top30">
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Analyze Collection(s)</button>
+            <div class="top15">
+                <a href="/form/" class="btn btn-default btn-lg btn-block">Go Back</a>
+            </div>
+            <div class="top15">
+                <button type="reset" class="btn btn-danger btn-lg btn-block">Reset Form</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block script %}{% endblock %}

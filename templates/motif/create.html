@@ -5,6 +5,11 @@
 {% block pageheader %}<h1>Create Motif<br><small>Use the motif building tool to create a motif to analyze sequence collections with.</small></h1>{% endblock %}
 
 {% block content %}
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
     <form action="/form/motif/create/" class="form-horizontal" method="post">
         <div class="col-md-10 col-xs-12">
             <div class="form-group">
@@ -39,13 +44,14 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-10 col-xs-12 top30">
+        <div class="col-sm-11 col-sm-offset-1 col-xs-12 top30">
             <div class="form-group">
-                <div class="col-xs-11 col-xs-offset-1">
-                    <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Motif</button>
-                    <div class="top15">
-                        <button class="btn btn-lg btn-danger btn-block" type="reset">Clear Form</button>
-                    </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Motif</button>
+                <div class="top30">
+                    <a class="btn btn-lg btn-block btn-default" href="/form/motif/">Go Back</a>
+                </div>
+                <div class="top15">
+                    <button class="btn btn-lg btn-danger btn-block" type="reset">Clear Form</button>
                 </div>
             </div>
         </div>
