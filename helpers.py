@@ -1,18 +1,22 @@
 import os
 import random
 import string
+import re
 
 from bson.objectid import ObjectId
+
 from Bio import SeqIO
 
 
 def format_input(collection_text, file_type):
     """
-    Breaks html textarea input into BioPython SeqIO format
+    Breaks html textarea input into BioPython Seq object format
     :param collection_text:
     :param file_type:
     :return:
     """
+    if len(collection_text) == 0:
+        return False
     if file_type == 'FASTA':
         return Private.read_fasta_string(collection_text)
     else:
@@ -26,6 +30,8 @@ def format_collection(collection, file_type):
     :param file_type:
     :return list:
     """
+    if collection is False:
+        return False
     if file_type == 'FASTA':
         collection_list = []
         for sequence in collection:
@@ -41,16 +47,6 @@ def format_collection(collection, file_type):
         return False
 
 
-def convert_string_id_to_bson_objectid(string_id):
-    """
-    Converts single string id taken from html
-    to BSON ObjectId readable by MongoDB
-    :param string_id:
-    :return bson.ObjectId object:
-    """
-    return ObjectId(string_id)
-
-
 def convert_string_ids_to_bson_objectids(string_list):
     """
     Converts string ids taken from html to BSON
@@ -62,6 +58,41 @@ def convert_string_ids_to_bson_objectids(string_list):
     for string_id in string_list:
         objectid_list.append(ObjectId(string_id))
     return objectid_list
+
+
+def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
+    """
+
+    :param sequence:
+    :param motif_list:
+    :param motif_frequency:
+    :param motif_frame_size:
+    :return:
+    """
+    result_list = []
+    for motif in motif_list:
+        # compile regex
+        compiled_motif = re.compile(motif)
+
+        # iterate through regex matches
+        match_list = []
+        for match in re.finditer(compiled_motif, sequence['sequence']):
+            match_details = {
+                'match': match.group(),
+                'span': match.span(),
+            }
+            match_list.append(match_details)
+
+        # iterate through `match_list` to find `motif_frequency` in `motif_frame_size`
+        # for match in match_list:
+
+        # compile result dictionary
+        result = {
+            'motif': motif,
+            'raw_data': match_list
+        }
+        result_list.append(result)
+    return result_list
 
 
 class Private(object):

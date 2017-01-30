@@ -9,8 +9,42 @@
         <h3>Analysis Details</h3>
         <p><strong>Motifs:</strong> {{ motifs }}</p>
         <p><strong>Number of Sequences:</strong> {{ sequence_count }}</p>
-        <p><strong>Analysis Completed:</strong><span id="analysis_completed"></span></p>
+        <p><strong>Motif Frequency (in frame):</strong> {{ motif_frequency }} Occurrences</p>
+        <p><strong>Motif Frame Size:</strong> {{ motif_frame_size }} Amino Acids</p>
+        <p><strong>Analysis Completed:</strong> <span id="analysis_completed">Not Completed...</span></p>
     </div>
+
+    <div class="col-xs-12 top30">
+        <textarea class="form-control" id="results" style="resize: vertical">
+
+        </textarea>
+    </div>
+
 {% endblock %}
 
-{% block script %}{% endblock %}
+{% block script %}
+    <script>
+        var interval = null;
+
+        $(document).ready( function() {
+            interval = setInterval(checkQueryStatus(), 10000);
+        });
+
+        function checkQueryStatus () {
+            $.post("/status/", function (data) {
+                data = $.parseJSON(data);
+                if (data.query_done === true) {
+                    $("#analysis_completed").text('Completed!');
+                    clearInterval(interval);
+                    getResults();
+                }
+            });
+        }
+
+        function getResults () {
+            $.post("/get_results/", function (data) {
+                $("#results").val(data);
+            })
+        }
+    </script>
+{% endblock %}
