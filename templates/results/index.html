@@ -14,10 +14,8 @@
         <p><strong>Analysis Completed:</strong> <span id="analysis_completed">Not Completed...</span></p>
     </div>
 
-    <div class="col-xs-12 top30">
-        <textarea class="form-control" id="results" style="resize: vertical">
-
-        </textarea>
+    <div class="top30" id="results">
+        <h2>Results</h2>
     </div>
 
 {% endblock %}
@@ -43,7 +41,34 @@
 
         function getResults () {
             $.post("/get_results/", function (data) {
-                $("#results").val(data);
+                data = $.parseJSON(data);
+                var results = data.query.result[0].result;
+                // console.log(results);
+                for (var i = 0; i < results.length; i++) {
+                    var sequenceDescription = results[i].sequence.sequence_description;
+                    var sequence = results[i].sequence.sequence;
+                    var motif = [];
+                    var matchList = [];
+                    console.log(sequenceDescription);
+                    console.log(sequence);
+                    for (var j = 0; j < results[i].analysis.length; j++) {
+                        motif.push(results[i].analysis[j].motif);
+                        console.log(motif[j]);
+                        var matchListInner = [];
+                        for (var k = 0; k < results[i].analysis[j].raw_data.length; k++) {
+                            matchListInner.push(JSON.stringify(results[i].analysis[j].raw_data[k]));
+                            console.log(matchListInner[k]);
+                        }
+                        matchList.push(matchListInner);
+                    }
+                    var tableHTML = "<table class=\"table table-bordered top15 col-xs-12\">" +
+                            "<tr><td>" + sequenceDescription + "</td></tr>" +
+                            "<tr><td>" + sequence + "</td></tr>" +
+                            "<tr><td>" + motif + "</td></tr>" +
+                            "<tr><td>" + matchList + "</td></tr>" +
+                            "</table";
+                    $("#results").append(tableHTML);
+                }
             })
         }
     </script>
