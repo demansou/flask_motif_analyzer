@@ -70,29 +70,41 @@ def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
     :return:
     """
     result_list = []
+    motif_boolean = False
     for motif in motif_list:
-        # compile regex
-        compiled_motif = re.compile(motif)
+        # get all motif matches as list
+        raw_match_list = Private.regex_find_iter(motif, sequence['sequence'])
 
-        # iterate through regex matches
-        match_list = []
-        for match in re.finditer(compiled_motif, sequence['sequence']):
-            match_details = {
-                'match': match.group(),
-                'span': match.span(),
-            }
-            match_list.append(match_details)
+        # with matches, analyze in regards to `motif_frequency` and `motif_frame_size`
+        motif_match_list = []
+        num_motifs = 0
+        for match in raw_match_list:
+            # `loose` match (`tight` match would be match['span'][0])
+            substr_start = match['span'][1]
+            substr_end = substr_start + motif_frame_size
+            if substr_end > len(sequence['sequence']):
+                substr_end = len(sequence['sequence'])
+            motif_list = Private.regex_find_iter(motif, sequence['sequence'][substr_start:substr_end])
+            if len(motif_list) >= motif_frequency:
+                motif_boolean = True
+                num_motifs += 1
+                motif_match_details = {
+                    'start': match,
+                    'motif': motif_list,
+                }
+                motif_match_list.append(motif_match_details)
 
-        # iterate through `match_list` to find `motif_frequency` in `motif_frame_size`
-        # for match in match_list:
-
-        # compile result dictionary
-        result = {
+        # for match in match_list compile sequence result dictionary
+        sequence_result = {
             'motif': motif,
-            'raw_data': match_list
+            'raw_data': raw_match_list,
+            'total_matches': len(raw_match_list),
+            'motif_data': motif_match_list,
+            'motif_matches': num_motifs,
         }
-        result_list.append(result)
-    return result_list
+        result_list.append(sequence_result)
+
+    return result_list, motif_boolean
 
 
 class Private(object):
@@ -126,3 +138,24 @@ class Private(object):
         # from http://stackoverflow.com/a/23728630/2213647
         valid_random_alphanum = string.ascii_letters + string.digits
         return ''.join(random.SystemRandom().choice(valid_random_alphanum) for _ in range(length))
+
+    @staticmethod
+    def regex_find_iter(motif, sequence_str):
+        """
+        Creates a list of re.finditer() output for a list of re.finditer() hits
+        :param motif:
+        :param sequence_str:
+        :return list:
+        """
+        # compile regex
+        compiled_pattern = re.compile(motif)
+
+        # gather regex matches in list
+        match_list = []
+        for match in re.finditer(compiled_pattern, sequence_str):
+            match_details = {
+                'group': match.group(),
+                'span': match.span(),
+            }
+            match_list.append(match_details)
+        return match_list

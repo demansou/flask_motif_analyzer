@@ -5,7 +5,7 @@
 {% block pageheader %}<h1>Analysis Options<br><small>Select analysis frequency and reference frame size.</small></h1>{% endblock %}
 
 {% block content %}
-    <form action="/form/options/" class="form-horizontal" method="post">
+    <form action="/options/" class="form-horizontal" method="post">
         <div class="form-group">
             <label for="motifs" class="col-xs-3">Analysis Motifs</label>
             <div class="col-xs-9">
@@ -33,7 +33,7 @@
         <div class="form-group top30">
             <button type="submit" class="btn btn-primary btn-lg btn-block">Analyze Collection(s)</button>
             <div class="top15">
-                <a href="/form/" class="btn btn-default btn-lg btn-block">Go Back</a>
+                <a href="/sequences/" class="btn btn-default btn-lg btn-block">Go Back</a>
             </div>
             <div class="top15">
                 <button type="reset" class="btn btn-danger btn-lg btn-block">Reset Form</button>

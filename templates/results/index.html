@@ -15,7 +15,7 @@
     </div>
 
     <div class="top30" id="results">
-        <h2>Results</h2>
+        <h2>Positive Results</h2>
     </div>
 
 {% endblock %}
@@ -42,33 +42,47 @@
         function getResults () {
             $.post("/get_results/", function (data) {
                 data = $.parseJSON(data);
-                var results = data.query.result[0].result;
-                // console.log(results);
-                for (var i = 0; i < results.length; i++) {
-                    var sequenceDescription = results[i].sequence.sequence_description;
-                    var sequence = results[i].sequence.sequence;
-                    var motif = [];
-                    var matchList = [];
-                    console.log(sequenceDescription);
-                    console.log(sequence);
-                    for (var j = 0; j < results[i].analysis.length; j++) {
-                        motif.push(results[i].analysis[j].motif);
-                        console.log(motif[j]);
-                        var matchListInner = [];
-                        for (var k = 0; k < results[i].analysis[j].raw_data.length; k++) {
-                            matchListInner.push(JSON.stringify(results[i].analysis[j].raw_data[k]));
-                            console.log(matchListInner[k]);
+                console.log(data);
+
+                for (var i = 0; i < data.length; i++) {
+
+                    var outerTableHTML = "<table class=\"table table-bordered table-responsive\">"
+                        + "<tr><td><strong>Sequence Description</strong></td><td class=\"is-breakable\">"
+                        + data[i].sequence.sequence_description + "</td></tr>"
+                        + "<tr><td><strong>Sequence</strong></td><td class=\"is-breakable\">"
+                        + data[i].sequence.sequence + "</td></tr>"
+                        + "<tr><td><strong>Motif(s)</strong></td><td class=\"is-breakable\">";
+
+                    var analysisArray = data[i].analysis;
+                    for (var j = 0; j < analysisArray.length; j++) {
+
+                        var innerTableHTML = "<table class=\"table table-bordered table-hover table-responsive\">"
+                            + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
+                            + analysisArray[j].motif + "</td></tr>";
+
+                        var motifDataArray = analysisArray[j].motif_data;
+                        for (var k = 0; k < motifDataArray.length; k++) {
+
+                            var motifDataString = "";
+
+                            var motifArray = motifDataArray[k].motif;
+                            for (var l = 0; l < motifArray.length; l++) {
+                                motifDataString += motifArray[l].group + ": ["
+                                    + motifArray[l].span[0] + ", "
+                                    + motifArray[l].span[1] + "] ";
+                            }
+                            innerTableHTML += "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
+                                + motifDataString + "</td></tr>";
                         }
-                        matchList.push(matchListInner);
+
+                        innerTableHTML += "</table>";
                     }
-                    var tableHTML = "<table class=\"table table-bordered top15 col-xs-12\">" +
-                            "<tr><td>" + sequenceDescription + "</td></tr>" +
-                            "<tr><td>" + sequence + "</td></tr>" +
-                            "<tr><td>" + motif + "</td></tr>" +
-                            "<tr><td>" + matchList + "</td></tr>" +
-                            "</table";
-                    $("#results").append(tableHTML);
+
+                    outerTableHTML += innerTableHTML + "</td></tr></table>";
+
+                    $("#results").append(outerTableHTML);
                 }
+
             })
         }
     </script>
