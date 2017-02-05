@@ -11,14 +11,17 @@
         </div>
     {% endif %}
     <form action="/motif/create/" class="form-horizontal" method="post">
-        <div class="col-md-10 col-xs-12">
-            <div class="form-group">
+
+        <fieldset class="form-group">
+            <div class="row">
                 <label for="motif" class="col-xs-3 control-label">Full Motif</label>
                 <div class="col-xs-12 col-sm-9">
                     <input type="text" class="form-control" id="motif" name="motif" readonly>
                 </div>
             </div>
-            <div class="form-group">
+        </fieldset>
+        <fieldset class="form-group">
+            <div class="row">
                 <label for="motif_part" class="col-xs-3 control-label top10">Motif Part</label>
                 <div class="col-xs-12 col-sm-7 top10">
                     <input type="text" class="form-control" id="motif_part" name="motif_part" readonly>
@@ -27,7 +30,9 @@
                     <button class="btn btn-default btn-block" id="add_motif_part_to_full_motif" type="button">Add</button>
                 </div>
             </div>
-            <div class="form-group">
+        </fieldset>
+        <fieldset class="form-group">
+            <div class="row">
                 <label for="motif_part" class="col-xs-3 control-label top10">Amino Acid List</label>
                 <div class="col-xs-12 col-sm-5 top10">
                     <select class="form-control" id="motif_list" name="motif_list">
@@ -43,20 +48,20 @@
                     <button class="btn btn-danger btn-block" id="clear_motif_part" type="button">Clear</button>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-11 col-sm-offset-1 col-xs-12 top30">
-            <div class="form-group">
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Motif</button>
-                <div class="top30">
-                    <a class="btn btn-lg btn-block btn-default" href="/form/motif/">Go Back</a>
+        </fieldset>
+        <fieldset class="form-group">
+            <div class="row">
+                <div class="col-sm-6 col-xs-12 top15">
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Motif</button>
                 </div>
-                <div class="top15">
+                <div class="col-sm-3 col-xs-12 top15">
+                    <a class="btn btn-lg btn-block btn-default" href="/motif/">Go Back</a>
+                </div>
+                <div class="col-sm-3 col-xs-12 top15">
                     <button class="btn btn-lg btn-danger btn-block" type="reset">Clear Form</button>
                 </div>
             </div>
-        </div>
-
-
+        </fieldset>
     </form>
 {% endblock %}
 

@@ -12,7 +12,11 @@
     {% endif %}
     <form action="/motif/" class="form-horizontal" method="post">
         <fieldset class="form-group">
-            <h3>Default Motifs</h3>
+            <div class="row">
+                <div class="col-xs-12 col-sm-8">
+                    <h3>Default Motifs</h3>
+                </div>
+            </div>
             <p class="text-muted">These motifs have been curated for use with the analysis program by the creators. Feel free to create your own!</p>
             {% for motif in default_motifs %}
                 <div class="col-xs-11 col-sm-5 col-xs-offset-1">
@@ -26,22 +30,33 @@
             {% endfor %}
         </fieldset>
         <fieldset class="form-group">
-            <h3>User-Generated Motifs</h3>
-            <p class="text-muted">These are YOUR motifs created using the application's motif creation tool.</p>
-            <div class="alert alert-info">
+            <div class="row">
+                <div class="col-xs-12 col-sm-9">
+                    <h3>User-Generated Motifs</h3>
+                    <p class="text-muted">These are YOUR motifs created using the application's motif creation tool.</p>
+                </div>
+                <div class="col-xs-12 col-sm-3 top23">
+                    <a href="/motif/create/" class="btn btn-default btn-block btn-lg">Create Motif</a>
+                </div>
+            </div>
+
+            <div class="alert alert-info top15">
                 <p>No user-generated motifs found in database!</p>
             </div> <!-- /.alert alert-info -->
         </fieldset>
         <fieldset class="form-group">
-            <div class="col-sm-4 col-xs-12 top15">
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
-            </div> <!-- /col-sm-4 col-xs-12 top15 -->
-            <div class="col-sm-4 col-xs-12 top15">
-                <a href="/" class="btn btn-default btn-block btn-lg">Go Back</a>
-            </div> <!-- /col-sm-4 col-xs-12 top15 -->
-            <div class="col-sm-4 col-xs-12 top15">
-                <button type="reset" class="btn btn-danger btn-block btn-lg">Reset Form</button>
-            </div> <!-- /col-sm-4 col-xs-12 top15 -->
+            <div class="row">
+                <div class="col-sm-6 col-xs-12 top15">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
+                </div> <!-- /col-sm-4 col-xs-12 top15 -->
+                <div class="col-sm-3 col-xs-12 top15">
+                    <a href="/" class="btn btn-default btn-block btn-lg">Go Back</a>
+                </div> <!-- /col-sm-4 col-xs-12 top15 -->
+                <div class="col-sm-3 col-xs-12 top15">
+                    <button type="reset" class="btn btn-danger btn-block btn-lg">Reset Form</button>
+                </div> <!-- /col-sm-4 col-xs-12 top15 -->
+            </div>
+
         </fieldset>
 
 

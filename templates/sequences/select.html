@@ -7,26 +7,37 @@
 {% block content %}
     <form action="/sequences/" class="form-horizontal" method="post">
         <fieldset class="form-group">
+            <div class="row">
+                <div class="col-xs-12 col-sm-9">
+                    <h3>User-Added Sequence Collections</h3>
+                    <p class="text-muted">These are YOUR sequence collections uploaded to the application! Select which collections to run analysis on.</p>
+                </div>
+                <div class="col-xs-12 col-sm-3 top23">
+                    <a href="/sequences/create/" class="btn btn-default btn-block btn-lg">Import Collection</a>
+                </div>
+            </div>
             {% for collection in query %}
                 <div class="col-xs-11 col-sm-5 col-xs-offset-1">
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" id="collection_list_{{ loop.index0 }}" name="collection_list[]" value="{{ collection['_id'] }}">
-                            {{ collection['collection_name'] }}
+                            {{ collection['collection_name'] }} ({{ collection['collection']|length }} sequences)
                         </label>
                     </div>
                 </div>
             {% endfor %}
         </fieldset>
         <fieldset class="form-group">
-            <div class="col-sm-4 col-xs-12 top15">
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
-            </div>
-            <div class="col-sm-4 col-xs-12 top15">
-                <a href="/motif/" class="btn btn-default btn-block btn-lg">Go Back</a>
-            </div>
-            <div class="col-sm-4 col-xs-12 top15">
-                <button type="reset" class="btn btn-danger btn-block btn-lg">Reset Form</button>
+            <div class="row">
+                <div class="col-sm-6 col-xs-12 top15">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
+                </div>
+                <div class="col-sm-3 col-xs-12 top15">
+                    <a href="/motif/" class="btn btn-default btn-block btn-lg">Go Back</a>
+                </div>
+                <div class="col-sm-3 col-xs-12 top15">
+                    <button type="reset" class="btn btn-danger btn-block btn-lg">Reset Form</button>
+                </div>
             </div>
         </fieldset>
 
