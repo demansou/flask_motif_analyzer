@@ -14,9 +14,12 @@
         <p><strong>Analysis Completed:</strong> <span id="analysis_completed">Not Completed...</span></p>
     </div>
 
-    <div class="top30" id="results">
-        <h2>Positive Results</h2>
+    <div class="top15">
+        <h3>Positive Results</h3>
+        <p class="text-muted">This is a list of sequences analyzed which contain one or more matches for the requested motif analysis. A full list of analysis results is also
+        available for download as a .CSV spreadsheet upon completion of the analysis.</p>
     </div>
+    <div class="top15" id="results"></div>
 
 {% endblock %}
 
@@ -61,19 +64,25 @@
                             + analysisArray[j].motif + "</td></tr>";
 
                         var motifDataArray = analysisArray[j].motif_data;
-                        for (var k = 0; k < motifDataArray.length; k++) {
+                        if (motifDataArray) {
+                            for (var k = 0; k < motifDataArray.length; k++) {
 
-                            var motifDataString = "";
+                                var motifDataString = "";
 
-                            var motifArray = motifDataArray[k].motif;
-                            for (var l = 0; l < motifArray.length; l++) {
-                                motifDataString += motifArray[l].group + ": ["
-                                    + motifArray[l].span[0] + ", "
-                                    + motifArray[l].span[1] + "] ";
+                                var motifArray = motifDataArray[k];
+                                if (motifArray) {
+                                    for (var l = 0; l < motifArray.length; l++) {
+                                        motifDataString += motifArray[l].group + ": ["
+                                            + motifArray[l].span[0] + ", "
+                                            + motifArray[l].span[1] + "] ";
+                                    }
+                                    innerTableHTML += "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
+                                        + motifDataString + "</td></tr>";
+                                }
+
                             }
-                            innerTableHTML += "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
-                                + motifDataString + "</td></tr>";
                         }
+
 
                         innerTableHTML += "</table>";
                     }

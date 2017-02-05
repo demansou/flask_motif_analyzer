@@ -75,32 +75,39 @@ def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
         # get all motif matches as list
         raw_match_list = Private.regex_find_iter(motif, sequence['sequence'])
 
-        # with matches, analyze in regards to `motif_frequency` and `motif_frame_size`
-        motif_match_list = []
-        num_motifs = 0
-        for match in raw_match_list:
-            # `loose` match (`tight` match would be match['span'][0])
-            substr_start = match['span'][1]
-            substr_end = substr_start + motif_frame_size
-            if substr_end > len(sequence['sequence']):
-                substr_end = len(sequence['sequence'])
-            motif_list = Private.regex_find_iter(motif, sequence['sequence'][substr_start:substr_end])
-            if len(motif_list) >= motif_frequency:
-                motif_boolean = True
-                num_motifs += 1
-                motif_match_details = {
-                    'start': match,
-                    'motif': motif_list,
-                }
-                motif_match_list.append(motif_match_details)
+        # filter out sequences which don't have enough motifs in overall sequence
+        motif_filter_list = []
+        if len(raw_match_list) >= motif_frequency:
+            # print('%s' % raw_match_list)
+
+            for index, match in enumerate(raw_match_list):
+                temp_list = []
+
+                # get motif frame
+                substr_start = match['span'][0]
+                substr_end = substr_start + motif_frame_size
+
+                # start temp list
+                temp_list.append(match)
+
+                # start iterating at next index of `raw_match_list`
+                i = index + 1
+                while i < len(raw_match_list):
+                    if raw_match_list[i]['span'][0] <= substr_end:
+                        temp_list.append(raw_match_list[i])
+                    i += 1
+
+                # if `temp_list` is gte than `motif_frequency`, push
+                if len(temp_list) >= motif_frequency:
+                    # print('MATCH: %s' % temp_list)
+                    motif_filter_list.append(temp_list)
+                    motif_boolean = True
 
         # for match in match_list compile sequence result dictionary
         sequence_result = {
             'motif': motif,
             'raw_data': raw_match_list,
-            'total_matches': len(raw_match_list),
-            'motif_data': motif_match_list,
-            'motif_matches': num_motifs,
+            'motif_data': motif_filter_list,
         }
         result_list.append(sequence_result)
 
