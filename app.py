@@ -324,6 +324,7 @@ def motif_analysis(query):
     for collection in collection_list:
         for sequence in collection:
             analysis_result, motif_boolean = helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)
+            helpers.write_results_to_csv(query, sequence, analysis_result)
             mongo.db.result.insert_one({
                 'query_id': query['_id'],
                 'sequence': sequence,

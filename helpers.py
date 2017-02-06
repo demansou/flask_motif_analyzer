@@ -2,6 +2,8 @@ import os
 import random
 import string
 import re
+import csv
+import pathlib
 
 from bson.objectid import ObjectId
 
@@ -62,7 +64,8 @@ def convert_string_ids_to_bson_objectids(string_list):
 
 def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
     """
-
+    Performs sequence analysis on a single BioPython Sequence object using
+    motif parameters
     :param sequence:
     :param motif_list:
     :param motif_frequency:
@@ -112,6 +115,26 @@ def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
         result_list.append(sequence_result)
 
     return result_list, motif_boolean
+
+
+def write_results_to_csv(query, sequence, analysis_result):
+    """
+
+    :param query:
+    :param sequence:
+    :param analysis_result:
+    :return:
+    """
+    # parse csv filename from `query_id` string and create file path
+    csv_filename = ''.join([str(query['_id']), '.csv'])
+    csv_file = os.path.join(os.getcwd(), 'tmp', csv_filename)
+
+    # create csv file and populate header if file does not exist
+    if not pathlib.Path(csv_file).is_file():
+        Private.create_csv_file(csv_file)
+
+    # write results to csv file
+    Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
 
 
 class Private(object):
@@ -166,3 +189,53 @@ class Private(object):
             }
             match_list.append(match_details)
         return match_list
+
+    @staticmethod
+    def create_csv_file(file_path):
+        """
+        Takes file path and creates csv file with header row
+        :param file_path:
+        :return:
+        """
+        row = [
+            'Sequence ID',
+            'Sequence Description',
+            'Sequence',
+            'Motif Frequency',
+            'Motif Frame Size',
+            'Motif(s)',
+            'Motif Matches',
+            'Raw Data',
+        ]
+        with open(file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(row)
+
+    @staticmethod
+    def write_to_csv_file(file_path, query, sequence, analysis_result):
+        """
+
+        :param file_path:
+        :param query:
+        :param sequence:
+        :param analysis_result:
+        :return:
+        """
+        motif_matches = []
+        raw_data = []
+        for result in analysis_result:
+            motif_matches.append(result['motif_data'])
+            raw_data.append(result['raw_data'])
+        row = [
+            sequence['sequence_id'],
+            sequence['sequence_description'],
+            sequence['sequence'],
+            query['motif_frequency'],
+            query['motif_frame_size'],
+            query['motifs_as_string'],
+            motif_matches,
+            raw_data,
+        ]
+        with open(file_path, 'a', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(row)
