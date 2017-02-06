@@ -2,9 +2,7 @@ from flask import Flask
 from celery import Celery
 from flask_pymongo import PyMongo
 
-from flask import request
-from flask import render_template
-from flask import redirect
+from flask import request, render_template, redirect, send_file
 
 from bson.objectid import ObjectId
 from bson import json_util
@@ -12,6 +10,7 @@ from bson import json_util
 from datetime import datetime
 
 import json
+import os
 
 import choices
 import helpers
@@ -293,6 +292,14 @@ def get_results():
     for result in query:
         query_list.append(result)
     return json.dumps(query_list, default=json_util.default)
+
+
+@app.route('/download_results/', methods=['GET'])
+def get_file():
+    print('%s' % request.cookies.get('query_id'))
+    file_name = ''.join([request.cookies.get('query_id'), '.csv'])
+    file_path = os.path.join(os.getcwd(), 'downloads', file_name)
+    return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')
 
 
 @celery.task()

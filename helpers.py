@@ -127,7 +127,7 @@ def write_results_to_csv(query, sequence, analysis_result):
     """
     # parse csv filename from `query_id` string and create file path
     csv_filename = ''.join([str(query['_id']), '.csv'])
-    csv_file = os.path.join(os.getcwd(), 'tmp', csv_filename)
+    csv_file = os.path.join(os.getcwd(), 'downloads', csv_filename)
 
     # create csv file and populate header if file does not exist
     if not pathlib.Path(csv_file).is_file():
