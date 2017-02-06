@@ -96,9 +96,10 @@
 
 
                         innerTableHTML += "</table>";
+                        outerTableHTML += innerTableHTML;
                     }
 
-                    outerTableHTML += innerTableHTML + "</td></tr></table>";
+                    outerTableHTML += "</td></tr></table>";
 
                     $("#results").append(outerTableHTML);
                     $("#download_link").show(1000);
