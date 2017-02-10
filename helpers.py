@@ -31,13 +31,16 @@ def convert_string_ids_to_bson_objectids(string_list):
     :param string_list:
     :return list:
     """
+    # ensure `string_list` is list
     if not isinstance(string_list, list):
         return False
 
+    # ensure each element of `string_list` is string
     for string_id in string_list:
         if not isinstance(string_id, str):
             return False
 
+    # ensure `string_list` not empty
     if len(string_list) == 0:
         return False
 
@@ -57,6 +60,44 @@ def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
     :param motif_frame_size:
     :return:
     """
+    # ensures `sequence` param is dictionary
+    if not isinstance(sequence, dict):
+        return False
+
+    # ensures each `sequence` dictionary value is a string
+    for key, value in sequence.items():
+        if not isinstance(value, str):
+            return False
+
+    # ensures that `motif_list` param is list
+    if not isinstance(motif_list, list):
+        return False
+
+    # ensures that `motif_list` param list is not empty
+    if len(motif_list) == 0:
+        return False
+
+    # ensures that each item in `motif_list` param list is a string
+    for motif in motif_list:
+        if not isinstance(motif, str):
+            return False
+
+    # ensures that `motif_frequency` param is an integer
+    if not isinstance(motif_frequency, int):
+        return False
+
+    # ensures that `motif_frequency` param falls within a range
+    if motif_frequency < 2 or motif_frequency > 10:
+        return False
+
+    # ensures that `motif_frame_size` param is an integer
+    if not isinstance( motif_frame_size, int):
+        return False
+
+    # ensures that `motif_frame_size` param falls within a range
+    if motif_frame_size < 10 or motif_frame_size > 1000:
+        return False
+
     result_list = []
     motif_boolean = False
     for motif in motif_list:

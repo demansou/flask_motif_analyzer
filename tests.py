@@ -5,23 +5,20 @@ from bson import ObjectId
 
 
 class TestFormatTextareaText(unittest.TestCase):
+
     def test_invalid_input_text_type(self):
         input_text = 123
         self.assertFalse(helpers.format_textarea_text_fasta(input_text))
 
-    def test_invalid_input_text_type_2(self):
         input_text = True
         self.assertFalse(helpers.format_textarea_text_fasta(input_text))
 
-    def test_invalid_input_text_type_3(self):
         input_text = []
         self.assertFalse(helpers.format_textarea_text_fasta(input_text))
 
-    def test_invalid_input_text_type_4(self):
         input_text = {}
         self.assertFalse(helpers.format_textarea_text_fasta(input_text))
 
-    def test_invalid_input_text_type_5(self):
         input_text = ()
         self.assertFalse(helpers.format_textarea_text_fasta(input_text))
 
@@ -55,22 +52,42 @@ class TestFormatTextareaText(unittest.TestCase):
             'sequence': 'MEQDWQPGEEVTPGPEPCSKGQAPLYPIVHVTELKHTDPNFPSNSNAVGTSSGWNRIGTGCSHTWDWRFSCTQQALLPLLGAWEWSIDTEAGGGRREQSQKPCSNGGPAAAGEGRVLPSPCFPWSTCQAAIHKVCRWQGCTRPALLAPSLATLKEHSYP'
         }])
 
+    def test_string_input_text_valid_string_multi(self):
+        input_text = """>sp|P86434|AAS1_HUMAN Putative uncharacterized protein ADORA2A-AS1 OS=Homo sapiens GN=ADORA2A-AS1 PE=5 SV=1
+        MEQDWQPGEEVTPGPEPCSKGQAPLYPIVHVTELKHTDPNFPSNSNAVGTSSGWNRIGTG
+        CSHTWDWRFSCTQQALLPLLGAWEWSIDTEAGGGRREQSQKPCSNGGPAAAGEGRVLPSP
+        CFPWSTCQAAIHKVCRWQGCTRPALLAPSLATLKEHSYP
+        >sp|Q9UDR5|AASS_HUMAN Alpha-aminoadipic semialdehyde synthase, mitochondrial OS=Homo sapiens GN=AASS PE=1 SV=1
+        MLQVHRTGLGRLGVSLSKGLHHKAVLAVRREDVNAWERRAPLAPKHIKGITNLGYKVLIQ
+        PSNRRAIHDKDYVKAGGILQEDISEACLILGVKRPPEEKLMSRKTYAFFSHTIKAQEANM
+        """
+        self.assertNotEqual(helpers.format_textarea_text_fasta(input_text), False)
+        self.assertEquals(len(helpers.format_textarea_text_fasta(input_text)), 2)
+        self.assertEquals(helpers.format_textarea_text_fasta(input_text), [{
+            'sequence_id': 'sp|P86434|AAS1_HUMAN',
+            'sequence_name': 'sp|P86434|AAS1_HUMAN',
+            'sequence_description': 'sp|P86434|AAS1_HUMAN Putative uncharacterized protein ADORA2A-AS1 OS=Homo sapiens GN=ADORA2A-AS1 PE=5 SV=1',
+            'sequence': 'MEQDWQPGEEVTPGPEPCSKGQAPLYPIVHVTELKHTDPNFPSNSNAVGTSSGWNRIGTGCSHTWDWRFSCTQQALLPLLGAWEWSIDTEAGGGRREQSQKPCSNGGPAAAGEGRVLPSPCFPWSTCQAAIHKVCRWQGCTRPALLAPSLATLKEHSYP'
+        }, {
+            'sequence_id': 'sp|Q9UDR5|AASS_HUMAN',
+            'sequence_name': 'sp|Q9UDR5|AASS_HUMAN',
+            'sequence_description': 'sp|Q9UDR5|AASS_HUMAN Alpha-aminoadipic semialdehyde synthase, mitochondrial OS=Homo sapiens GN=AASS PE=1 SV=1',
+            'sequence': 'MLQVHRTGLGRLGVSLSKGLHHKAVLAVRREDVNAWERRAPLAPKHIKGITNLGYKVLIQPSNRRAIHDKDYVKAGGILQEDISEACLILGVKRPPEEKLMSRKTYAFFSHTIKAQEANM'
+        }])
+
 
 class TestConvertStringIdsToBsonObjectIds(unittest.TestCase):
 
-    def test_invalid_list_1(self):
+    def test_invalid_list(self):
         string_list = "ASDF"
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_2(self):
         string_list = 123
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_3(self):
         string_list = {}
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_4(self):
         string_list = ()
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
@@ -78,15 +95,13 @@ class TestConvertStringIdsToBsonObjectIds(unittest.TestCase):
         string_list = []
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_string_1(self):
+    def test_invalid_list_string(self):
         string_list = [1]
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_string_2(self):
         string_list = [()]
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
-    def test_invalid_list_string_3(self):
         string_list = [{}]
         self.assertFalse(helpers.convert_string_ids_to_bson_objectids(string_list))
 
@@ -111,6 +126,116 @@ class TestConvertStringIdsToBsonObjectIds(unittest.TestCase):
             ObjectId('589d6d4f35604d2d1c30fbb5'),
             ObjectId('589d6d4f35604d2d1c30fbb1')
         ])
+
+
+class TestAnalyzeSequence(unittest.TestCase):
+
+    def test_invalid_sequence_types(self):
+        motif_list = ['[ST]Q']
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        sequence = ''
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = 123
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = ()
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = []
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = {
+            'sequence_id': 0,
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': [],
+            'sequence_description': '',
+            'sequence': '',
+        }
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': {},
+            'sequence': '',
+        }
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': (),
+        }
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_invalid_motif_list_types(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        motif_list = ''
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = 123
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = {}
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = ()
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_empty_motif_list(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        motif_list = []
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_invalid_motif_list_items(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        motif_list = [0]
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = [{}]
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = [[]]
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_list = [()]
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
 
 
 
