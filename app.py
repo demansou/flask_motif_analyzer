@@ -194,13 +194,9 @@ def sequences_create():
 
     # takes form inputs to try and create a sequence `collection` document for MongoDB insertion
     if request.form['collection_type'] == 'FASTA':
-        # use Biopython SeqIO parser on form textarea `collection_textbox` to break string into Biopython SeqRecord
-        # objects and returns an iterator
-        collection = helpers.format_input(collection_text=request.form['collection_textbox'],
-                                          file_type=request.form['collection_type'])
-
-        # takes `collection` iterator and iterates over BioPython SeqRecords to create list of sequences as dicts
-        collection = helpers.format_collection(collection=collection, file_type=request.form['collection_type'])
+        # takes textarea input and uses Biopython parsing function to create list of sequence dictionaries
+        collection = helpers.format_textarea_text(input_text=request.form['collection_textbox'],
+                                                  file_type=request.form['collection_type'])
 
         # takes formatted `collection` and inserts `collection` document into MongoDB and redirects to form sequence
         # index OR returns error if invalid collection encountered
@@ -214,7 +210,7 @@ def sequences_create():
             })
             return redirect('/sequences/', code=302)
         else:
-            error = 'ERROR! Error parsing sequence list!'
+            error = 'ERROR! Error adding sequences to database!'
             return render_template('/sequences/create.html', error=error, collection_types=choices.INPUT_TYPES)
     else:
         error = 'ERROR! Invalid collection type!'

@@ -1,52 +1,27 @@
 import os
-import random
-import string
 import re
 import csv
 import pathlib
 
 from bson.objectid import ObjectId
 
+from io import StringIO
+
 from Bio import SeqIO
 
 
-def format_input(collection_text, file_type):
-    """
-    Breaks html textarea input into BioPython Seq object format
-    :param collection_text:
-    :param file_type:
-    :return:
-    """
-    if len(collection_text) == 0:
-        return False
-    if file_type == 'FASTA':
-        return Private.read_fasta_string(collection_text)
-    else:
+def format_textarea_text_fasta(input_text):
+    # ensure `input_text` param is string
+    if not isinstance(input_text, str):
         return False
 
+    # ensure `input_text` param is not 0 length
+    if len(input_text) == 0:
+        return False
 
-def format_collection(collection, file_type):
-    """
-    Breaks BioPython Seq objects into strings for database entry
-    :param collection:
-    :param file_type:
-    :return list:
-    """
-    if collection is False:
-        return False
-    if file_type == 'FASTA':
-        collection_list = []
-        for sequence in collection:
-            sequence_dict = {
-                'sequence': str(sequence.seq),
-                'sequence_id': sequence.id,
-                'sequence_name': sequence.name,
-                'sequence_description': sequence.description,
-            }
-            collection_list.append(sequence_dict)
-        return collection_list
-    else:
-        return False
+    # parse input
+    fasta_list = Private.fasta_blob_to_list(input_text)
+    return Private.biopython_parse_fasta_list(fasta_list)
 
 
 def convert_string_ids_to_bson_objectids(string_list):
@@ -56,6 +31,16 @@ def convert_string_ids_to_bson_objectids(string_list):
     :param string_list:
     :return list:
     """
+    if not isinstance(string_list, list):
+        return False
+
+    for string_id in string_list:
+        if not isinstance(string_id, str):
+            return False
+
+    if len(string_list) == 0:
+        return False
+
     objectid_list = []
     for string_id in string_list:
         objectid_list.append(ObjectId(string_id))
@@ -139,35 +124,26 @@ def write_results_to_csv(query, sequence, analysis_result):
 
 class Private(object):
     @staticmethod
-    def read_fasta_string(fasta_string):
-        """
-        Reads fasta string to file and returns sequences as list object
-        BioPython SeqIO requires fasta string in a file
-        :param fasta_string:
-        :return object:
-        """
-        fasta_file_name = ''.join([Private.generate_id(16), '.txt'])
-        fasta_file = os.path.join(os.getcwd(), 'tmp', fasta_file_name)
-        fp = open(fasta_file, 'w')
-        fp.write(fasta_string)
-        fp.close()
-        sequence_object = SeqIO.parse(open(fasta_file), 'fasta')
-        try:
-            os.remove(fasta_file)
-        except OSError:
-            pass
-        return sequence_object
+    def fasta_blob_to_list(fasta_blob):
+        fasta_list = []
+        for sequence_str in fasta_blob.split('>'):
+            if len(sequence_str) > 0:
+                fasta_list.append(''.join(['>', sequence_str]))
+        return fasta_list
 
     @staticmethod
-    def generate_id(length):
-        """
-        generates a randomized string of alphanumerics of length specified
-        :param length:
-        :return string:
-        """
-        # from http://stackoverflow.com/a/23728630/2213647
-        valid_random_alphanum = string.ascii_letters + string.digits
-        return ''.join(random.SystemRandom().choice(valid_random_alphanum) for _ in range(length))
+    def biopython_parse_fasta_list(fasta_list):
+        collection_list = []
+        for sequence_str in fasta_list:
+            record = SeqIO.read(StringIO(sequence_str), 'fasta')
+            # print('%s' % record)
+            collection_list.append({
+                'sequence_id': record.id,
+                'sequence_name': record.name,
+                'sequence_description': record.description,
+                'sequence': str(record.seq),
+            })
+        return collection_list
 
     @staticmethod
     def regex_find_iter(motif, sequence_str):
