@@ -1,4 +1,7 @@
 import unittest
+import os
+import pathlib
+
 import helpers
 
 from bson import ObjectId
@@ -236,8 +239,948 @@ class TestAnalyzeSequence(unittest.TestCase):
         motif_list = [()]
         self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
 
+    def test_invalid_motif_frequency_type(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_list = [
+            '[ST]Q',
+        ]
+        motif_frame_size = 100
+
+        motif_frequency = ''
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frequency = []
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frequency = ()
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frequency = {}
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_invalid_motif_frequency_range(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_list = [
+            '[ST]Q',
+        ]
+        motif_frame_size = 100
+
+        motif_frequency = 1
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frequency = 11
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_invalid_motif_frame_size_type(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_list = [
+            '[ST]Q',
+        ]
+        motif_frequency = 3
+
+        motif_frame_size = ''
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frame_size = []
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frame_size = ()
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frame_size = {}
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_invalid_motif_frame_size_range(self):
+        sequence = {
+            'sequence_id': '',
+            'sequence_name': '',
+            'sequence_description': '',
+            'sequence': '',
+        }
+        motif_list = [
+            '[ST]Q',
+        ]
+        motif_frequency = 3
+
+        motif_frame_size = 9
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+        motif_frame_size = 1001
+        self.assertFalse(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size))
+
+    def test_valid_analysis_motif_found(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        motif_list = [
+            '[ST]Q',
+        ]
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        self.assertNotEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), False)
+        self.assertEquals(len(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)), 2)
+        self.assertEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), ([{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }], True))
+
+    def test_valid_analysis_multi_motif_found(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQXZXZXZ'
+        }
+        motif_list = [
+            '[ST]Q',
+            '[XY]Z',
+        ]
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        self.assertNotEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), False)
+        self.assertEquals(len(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)), 2)
+        self.assertEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), ([{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }, {
+            'motif': '[XY]Z',
+            'raw_data': [{
+                'group': 'XZ',
+                'span': (6, 8),
+            }, {
+                'group': 'XZ',
+                'span': (8, 10),
+            }, {
+                'group': 'XZ',
+                'span': (10, 12),
+            }],
+            'motif_data': [[{
+                'group': 'XZ',
+                'span': (6, 8),
+            }, {
+                'group': 'XZ',
+                'span': (8, 10),
+            }, {
+                'group': 'XZ',
+                'span': (10, 12),
+            }]],
+        }], True))
+
+    def test_valid_analysis_multi_motif_found_mixed(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        motif_list = [
+            '[ST]Q',
+            '[XY]Z',
+        ]
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        self.assertNotEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), False)
+        self.assertEquals(len(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)), 2)
+        self.assertEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), ([{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }, {
+            'motif': '[XY]Z',
+            'raw_data': [],
+            'motif_data': [],
+        }], True))
+
+    def test_valid_analysis_motif_not_found(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        motif_list = [
+            '[XY]Z',
+        ]
+        motif_frequency = 3
+        motif_frame_size = 100
+
+        self.assertNotEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), False)
+        self.assertEquals(len(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)), 2)
+        self.assertEquals(helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size), ([{
+            'motif': '[XY]Z',
+            'raw_data': [],
+            'motif_data': [],
+        }], False))
 
 
+class TestWriteResultsToCSV(unittest.TestCase):
+
+    def test_invalid_query_type(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        query = ''
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = 123
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = []
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = ()
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_query_contents(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        query = {
+            'not _id': '',
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_query_id_type(self):
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        query = {
+            '_id': '',
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = {
+            '_id': 123,
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = {
+            '_id': [],
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = {
+            '_id': (),
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        query = {
+            '_id': {},
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_sequence_type(self):
+        query = {
+            '_id': ObjectId(),
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        sequence = ''
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = 123
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = []
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = ()
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_sequence_data(self):
+        query = {
+            '_id': ObjectId('589d6d4f35604d2d1c30fbb5'),
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        sequence = {
+            'sequence_id': 123,
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': {},
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': (),
+            'sequence': 'SQSQSQ'
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': []
+        }
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_analysis_result(self):
+        query = {
+            '_id': ObjectId('589d6d4f35604d2d1c30fbb5'),
+        }
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+
+        analysis_result = ''
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = 123
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = {}
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = ()
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_invalid_analysis_result_data(self):
+        query = {
+            '_id': ObjectId(),
+        }
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+
+        analysis_result = [{
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': 123,
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': {},
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': (),
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': [],
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': '',
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': 123,
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': {},
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': (),
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'not group': 'SQ',
+                'span': (0, 2),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'not span': (0, 2),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': '',
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': 123,
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': {},
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': (),
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'not group': 'SQ',
+                'span': (0, 2),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'not span': (0, 2),
+            }]],
+        }]
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result))
+
+    def test_valid_write_csv_with_file_creation(self):
+        query = {
+            '_id': ObjectId('589d6d4f35604d2d1c30fbb5'),
+            'motifs_as_string': '[ST]Q',
+            'motif_frequency': 3,
+            'motif_frame_size': 100,
+        }
+        sequence = {
+            'sequence_id': '12345',
+            'sequence_name': '12345',
+            'sequence_description': '12345',
+            'sequence': 'SQSQSQ'
+        }
+        analysis_result = [{
+            'motif': '[ST]Q',
+            'raw_data': [{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }],
+            'motif_data': [[{
+                'group': 'SQ',
+                'span': (0, 2),
+            }, {
+                'group': 'SQ',
+                'span': (2, 4),
+            }, {
+                'group': 'SQ',
+                'span': (4, 6),
+            }]],
+        }]
+
+        csv_filename = ''.join([str(query['_id']), '.csv'])
+        csv_file = os.path.join(os.getcwd(), 'downloads', csv_filename)
+
+        # test not false
+        self.assertFalse(helpers.write_results_to_csv(query, sequence, analysis_result), False)
+
+        # ensure file doesnt exist
+        if pathlib.Path(csv_file).is_file():
+            os.remove(csv_file)
+        self.assertFalse(pathlib.Path(csv_file).is_file())
+
+        # do csv tests
+        helpers.write_results_to_csv(query, sequence, analysis_result)
+        self.assertTrue(pathlib.Path(csv_file).is_file())
+
+        # test number of rows
+        with open(csv_file, 'r') as fp:
+            data = fp.readlines()
+        self.assertEqual(len(data), 2)
+
+        # need to test more csv output but its tuff
+
+        # remove when done
+        os.remove(csv_file)
+        self.assertFalse(pathlib.Path(csv_file).is_file())
 
 if __name__ == '__main__':
     unittest.main()

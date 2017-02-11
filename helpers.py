@@ -151,6 +151,60 @@ def write_results_to_csv(query, sequence, analysis_result):
     :param analysis_result:
     :return:
     """
+
+    # ensure query param is dictionary
+    if not isinstance(query, dict):
+        return False
+
+    # ensure query dict includes `'_id'` key
+    if '_id' not in query:
+        return False
+
+    # ensure `query['_id']` is ObjectId
+    if not isinstance(query['_id'], ObjectId):
+        return False
+
+    # ensures `sequence` param is dictionary
+    if not isinstance(sequence, dict):
+        return False
+
+    # ensures each `sequence` dictionary value is a string
+    for key, value in sequence.items():
+        if not isinstance(value, str):
+            return False
+
+    # ensure `analysis_result` is list
+    if not isinstance(analysis_result, list):
+        return False
+
+    # ensure `analysis_result` contains correct data
+    for result in analysis_result:
+        if 'motif' not in result:
+            return False
+        if not isinstance(result['motif'], str):
+            return False
+        if 'raw_data' not in result:
+            return False
+        if not isinstance(result['raw_data'], list):
+            return False
+        if len(result['raw_data']) > 0:
+            for raw_data_result in result['raw_data']:
+                if 'group' not in raw_data_result:
+                    return False
+                if 'span' not in raw_data_result:
+                    return False
+        if 'motif_data' not in result:
+            return False
+        if not isinstance(result['motif_data'], list):
+            return False
+        if len(result['motif_data']) > 0:
+            for motif_data_hit in result['motif_data']:
+                for motif_data_result in motif_data_hit:
+                    if 'group' not in motif_data_result:
+                        return False
+                    if 'span' not in motif_data_result:
+                        return False
+
     # parse csv filename from `query_id` string and create file path
     csv_filename = ''.join([str(query['_id']), '.csv'])
     csv_file = os.path.join(os.getcwd(), 'downloads', csv_filename)
