@@ -17,6 +17,11 @@ import helpers
 
 app = Flask(__name__, static_url_path='/static')
 
+# File Upload Settings
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+ALLOWED_EXTENSIONS = {'fasta'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 # MongoDB Settings
 app.config['MONGO_DBNAME'] = 'web_queries'
 app.config['MONGO_USERNAME'] = 'db_admin'
@@ -74,28 +79,37 @@ def motif_select():
     # convert form `motif_list[]` multiple select field checked values to bson.ObjectId type
     motif_list = helpers.convert_string_ids_to_bson_objectids(request.form.getlist('motif_list[]'))
 
-    # create string of `sequence_motif` values as comma separated values
-    sequence_motif_list = []
-    for motif_id in motif_list:
-        motif_query = mongo.db.motif.find_one({'_id': motif_id})
-        sequence_motif_list.append(motif_query['sequence_motif'])
-    motifs_as_string = ', '.join(sequence_motif_list)
+    if motif_list is not False:
+        # create string of `sequence_motif` values as comma separated values
+        sequence_motif_list = []
+        for motif_id in motif_list:
+            motif_query = mongo.db.motif.find_one({'_id': motif_id})
+            sequence_motif_list.append(motif_query['sequence_motif'])
+        motifs_as_string = ', '.join(sequence_motif_list)
 
-    # create `query` document as dict for insertion into MongoDB
-    new_query = {
-        'motif_list': motif_list,
-        'motifs_as_string': motifs_as_string,
-        'datetime_added': datetime.utcnow(),
-        'user': 'default',
-    }
-    result = mongo.db.query.insert_one(new_query)
+        # create `query` document as dict for insertion into MongoDB
+        new_query = {
+            'motif_list': motif_list,
+            'motifs_as_string': motifs_as_string,
+            'datetime_added': datetime.utcnow(),
+            'user': 'default',
+        }
+        result = mongo.db.query.insert_one(new_query)
 
-    # create client cookie `query_id` with MongoDB `query` document key
-    response = app.make_response(redirect('/sequences/', code=302))
-    response.set_cookie('query_id', str(result.inserted_id))
+        # create client cookie `query_id` with MongoDB `query` document key
+        response = app.make_response(redirect('/sequences/', code=302))
+        response.set_cookie('query_id', str(result.inserted_id))
 
-    # redirects to form sequence index with `query_id` cookie in HTTP header
-    return response
+        # redirects to form sequence index with `query_id` cookie in HTTP header
+        return response
+    else:
+        error = 'ERROR! Invalid collection type!'
+        query = mongo.db.motif.find({
+            'user': 'default',
+        }).sort([
+            ('datetime_added', -1),
+        ])
+        return render_template('/motif/select.html', error=error, query=query)
 
 
 @app.route('/motif/create/', methods=['GET', 'POST'])
@@ -195,8 +209,7 @@ def sequences_create():
     # takes form inputs to try and create a sequence `collection` document for MongoDB insertion
     if request.form['collection_type'] == 'FASTA':
         # takes textarea input and uses Biopython parsing function to create list of sequence dictionaries
-        collection = helpers.format_textarea_text(input_text=request.form['collection_textbox'],
-                                                  file_type=request.form['collection_type'])
+        collection = helpers.format_textarea_text_fasta(input_text=request.form['collection_textbox'])
 
         # takes formatted `collection` and inserts `collection` document into MongoDB and redirects to form sequence
         # index OR returns error if invalid collection encountered
@@ -323,17 +336,20 @@ def motif_analysis(query):
         collection_list.append(collection)
 
     # iterate through each sequence in each collection and do analysis
+    # does not add document to CSV or MongoDB if error encountered
     for collection in collection_list:
         for sequence in collection:
             analysis_result, motif_boolean = helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)
-            helpers.write_results_to_csv(query, sequence, analysis_result)
-            mongo.db.result.insert_one({
-                'query_id': query['_id'],
-                'sequence': sequence,
-                'analysis': analysis_result,
-                'has_motif': motif_boolean,
-                'datetime_added': datetime.utcnow(),
-            })
+            if analysis_result is not False:
+                write_result = helpers.write_results_to_csv(query, sequence, analysis_result)
+                if write_result is not False:
+                    mongo.db.result.insert_one({
+                        'query_id': query['_id'],
+                        'sequence': sequence,
+                        'analysis': analysis_result,
+                        'has_motif': motif_boolean,
+                        'datetime_added': datetime.utcnow(),
+                    })
 
     # update `query` document with `done`
     mongo.db.query.update({

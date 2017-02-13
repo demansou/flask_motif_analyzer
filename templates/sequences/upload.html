@@ -1,0 +1,18 @@
+{% extends 'base_template.html' %}
+
+{% block title %}Upload Sequence Collection FASTA File{% endblock %}
+
+{% block pageheader %}<h1>Upload Sequence Collection FASTA File<br><small>Use the file upload tool to upload a collection to analyze.</small></h1>{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endif %}
+    <form action="/sequence/upload/" enctype="multipart/form-data">
+
+    </form>
+{% endblock %}
+
+{% block script %}{% endblock %}

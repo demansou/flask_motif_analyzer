@@ -11,6 +11,12 @@ from Bio import SeqIO
 
 
 def format_textarea_text_fasta(input_text):
+    """
+    Convert textarea input text to list of
+    BioPython-parsed sequence dictionaries
+    :param input_text:
+    :return:
+    """
     # ensure `input_text` param is string
     if not isinstance(input_text, str):
         return False
@@ -213,8 +219,14 @@ def write_results_to_csv(query, sequence, analysis_result):
     if not pathlib.Path(csv_file).is_file():
         Private.create_csv_file(csv_file)
 
-    # write results to csv file
-    Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
+    # write results to csv file accounting for page reloads
+    with open(csv_file, 'r') as fp:
+        data = fp.readlines()
+        fp.close()
+    if len(data) <= query['sequence_count']:
+        # print('%d' % len(data))
+        Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
+    return True
 
 
 class Private(object):
