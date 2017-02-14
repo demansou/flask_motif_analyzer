@@ -2,7 +2,9 @@ from flask import Flask
 from celery import Celery
 from flask_pymongo import PyMongo
 
-from flask import request, render_template, redirect, send_file
+from flask import flash, request, render_template, redirect, send_file
+
+from werkzeug.utils import secure_filename
 
 from bson.objectid import ObjectId
 from bson import json_util
@@ -16,6 +18,9 @@ import choices
 import helpers
 
 app = Flask(__name__, static_url_path='/static')
+
+# Set Secret Key
+app.config['SECRET_KEY'] = 'SuperDuperSecretKey64'
 
 # File Upload Settings
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
@@ -44,7 +49,9 @@ def app_home():
     Displays app front page
     :return template:
     """
-    return render_template('frontpage.html')
+    response = app.make_response(render_template('frontpage.html'))
+    response.set_cookie('query_id', '')
+    return response
 
 
 @app.route('/motif/', methods=['GET', 'POST'])
@@ -68,13 +75,13 @@ def motif_select():
 
     # resend selection form to client if form `motif_list[]` multiple select field had no checked entities
     if len(request.form.getlist('motif_list[]')) == 0:
-        error = 'ERROR! No motifs selected! Please select motifs to continue analysis!'
+        flash('ERROR! No motifs selected! Please select motifs to continue analysis!')
         query = mongo.db.motif.find({
             'user': 'default',
         }).sort([
             ('datetime_added', -1),
         ])
-        return render_template('/motif/select.html', error=error, query=query)
+        return render_template('/motif/select.html', query=query)
 
     # convert form `motif_list[]` multiple select field checked values to bson.ObjectId type
     motif_list = helpers.convert_string_ids_to_bson_objectids(request.form.getlist('motif_list[]'))
@@ -103,13 +110,13 @@ def motif_select():
         # redirects to form sequence index with `query_id` cookie in HTTP header
         return response
     else:
-        error = 'ERROR! Invalid collection type!'
+        flash('ERROR! Invalid collection type!')
         query = mongo.db.motif.find({
             'user': 'default',
         }).sort([
             ('datetime_added', -1),
         ])
-        return render_template('/motif/select.html', error=error, query=query)
+        return render_template('/motif/select.html', query=query)
 
 
 @app.route('/motif/create/', methods=['GET', 'POST'])
@@ -127,13 +134,13 @@ def motif_create():
 
     # resend creation form if submitted motif string value length is less than 2
     if len(request.form['motif']) < 2:
-        error = 'ERROR! Submitted motif not long enough! Please try again!'
-        return render_template('/motif/create.html', error=error, motif_list=choices.AMINOACID_CHOICES)
+        flash('ERROR! Submitted motif not long enough! Please try again!')
+        return render_template('/motif/create.html', motif_list=choices.AMINOACID_CHOICES)
 
     # resend creation form if motif already found in MongoDB motif collection
     if mongo.db.motif.find({'sequence_motif': request.form['motif']}).limit(1).count() > 0:
-        error = 'ERROR! Motif already exists in database!'
-        return render_template('/motif/create.html', error=error, motif_list=choices.AMINOACID_CHOICES)
+        flash('ERROR! Motif already exists in database!')
+        return render_template('/motif/create.html', motif_list=choices.AMINOACID_CHOICES)
 
     # create `motif` document as dict for insertion into MongoDB
     new_motif = {
@@ -150,7 +157,8 @@ def motif_create():
 @app.route('/sequences/', methods=['GET', 'POST'])
 def sequences_select():
     # redirects to form motif index page if `query_id` cookie not set
-    if 'query_id' not in request.cookies:
+    if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
+        flash('Must select motifs before this step!')
         return redirect('/motif/', code=302)
 
     if request.method == 'GET':
@@ -196,7 +204,8 @@ def sequences_create():
     :return template:
     """
     # redirects to form motif index page if `query_id` cookie not set
-    if 'query_id' not in request.cookies:
+    if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
+        flash('Must select motifs before this step!')
         return redirect('/form/motif/', code=302)
 
     if request.method == 'GET':
@@ -223,17 +232,54 @@ def sequences_create():
             })
             return redirect('/sequences/', code=302)
         else:
-            error = 'ERROR! Error adding sequences to database!'
-            return render_template('/sequences/create.html', error=error, collection_types=choices.INPUT_TYPES)
+            flash('ERROR! Error adding sequences to database!')
+            return render_template('/sequences/create.html', collection_types=choices.INPUT_TYPES)
     else:
-        error = 'ERROR! Invalid collection type!'
+        flash('ERROR! Invalid collection type!')
         return render_template('/sequences/create.html', error=error, collection_types=choices.INPUT_TYPES)
+
+
+@app.route('/sequences/upload/', methods=['GET', 'POST'])
+def sequences_upload():
+    # redirects to form motif index page if `query_id` cookie not set
+    if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
+        flash('Must select motifs before this step!')
+        return redirect('/form/motif/', code=302)
+
+    if request.method == 'GET':
+        return render_template('/sequences/upload.html', collection_types=choices.INPUT_TYPES)
+
+    ###############
+    # POST METHOD #
+    ###############
+
+    # returns form page if file not found in request data
+    if 'fasta_file' not in request.files:
+        return redirect(request.url)
+
+    file = request.files['fasta_file']
+
+    # returns form page if filename is not present in request data
+    # length of filename includes `.fasta` so at least 7 characters
+    # for valid filename
+    if len(file.filename) < 7:
+        return redirect(request.url)
+
+    # creates collection document with data
+    if file and helpers.is_allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        # do stuff with file
+
+        return redirect('/sequences/', code=302)
 
 
 @app.route('/options/', methods=['GET', 'POST'])
 def form_options():
     # redirects to form motif index page if `query_id` cookie not set
-    if 'query_id' not in request.cookies:
+    if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
+        flash('Must select motifs before this step!')
         return redirect('/form/motif/', code=302)
 
     if request.method == 'GET':
@@ -266,7 +312,8 @@ def form_options():
 @app.route('/results/', methods=['GET'])
 def results():
     # redirects to form motif index page if `query_id` cookie not set
-    if 'query_id' not in request.cookies:
+    if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
+        flash('Must select motifs before this step!')
         return redirect('/form/motif/', code=302)
 
     # get `query` document from stored cookie

@@ -3,11 +3,23 @@ import re
 import csv
 import pathlib
 
+import choices
+
 from bson.objectid import ObjectId
 
 from io import StringIO
 
 from Bio import SeqIO
+
+
+def is_allowed_file(filename):
+    """
+    Returns boolean value determined by if file
+    is of allowed extension type
+    :param filename:
+    :return:
+    """
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in choices.ALLOWED_EXTENSIONS
 
 
 def format_textarea_text_fasta(input_text):

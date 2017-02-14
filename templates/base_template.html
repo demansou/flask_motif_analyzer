@@ -24,6 +24,15 @@
       </div><!-- /.container-fluid -->
     </nav>
     <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-danger">
+                        {{ msg }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         <div class="page-header">
             {% block pageheader %}{% endblock %}
         </div>

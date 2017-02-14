@@ -1,3 +1,14 @@
+# FILE TYPE UPLOADS ALLOWED BY SERVER
+ALLOWED_EXTENSIONS = {
+    '.fasta',
+}
+
+# TYPES OF TEXT INPUT ACCEPTED BY COLLECTION CREATION FORM
+INPUT_TYPES = (
+    (0, 'FASTA'),
+)
+
+# AMINO ACID CHOICES FOR MOTIF BUILDER FORM
 AMINOACID_CHOICES = (
     ('G', 'G - Glycine'),
     ('A', 'A - Alanine'),
@@ -19,8 +30,4 @@ AMINOACID_CHOICES = (
     ('N', 'N - Asparagine'),
     ('D', 'D - Aspartic Acid'),
     ('T', 'T - Threonine')
-)
-
-INPUT_TYPES = (
-    (0, 'FASTA'),
 )
