@@ -42,6 +42,19 @@ def format_textarea_text_fasta(input_text):
     return Private.biopython_parse_fasta_list(fasta_list)
 
 
+def format_file_fasta(file_path):
+    """
+
+    :param file_path:
+    :return:
+    """
+    # ensure file exists
+    if not pathlib.Path(file_path).is_file():
+        return False
+
+    return Private.biopython_parse_fasta_file(file_path)
+
+
 def convert_string_ids_to_bson_objectids(string_list):
     """
     Converts string ids taken from html to BSON
@@ -252,6 +265,11 @@ class Private(object):
 
     @staticmethod
     def biopython_parse_fasta_list(fasta_list):
+        """
+
+        :param fasta_list:
+        :return:
+        """
         collection_list = []
         for sequence_str in fasta_list:
             record = SeqIO.read(StringIO(sequence_str), 'fasta')
@@ -262,6 +280,24 @@ class Private(object):
                 'sequence_description': record.description,
                 'sequence': str(record.seq),
             })
+        return collection_list
+
+    @staticmethod
+    def biopython_parse_fasta_file(file_path):
+        """
+
+        :param file_path:
+        :return:
+        """
+        collection_list = []
+        with open(file_path, 'r') as fasta_file:
+            for record in SeqIO.parse(fasta_file, 'fasta'):
+                collection_list.append({
+                    'sequence_id': record.id,
+                    'sequence_name': record.name,
+                    'sequence_description': record.description,
+                    'sequence': str(record.seq),
+                })
         return collection_list
 
     @staticmethod

@@ -158,7 +158,7 @@ def motif_create():
 def sequences_select():
     # redirects to form motif index page if `query_id` cookie not set
     if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
-        flash('Must select motifs before this step!')
+        flash('Must select motifs to analyze before continuing to subsequent steps!')
         return redirect('/motif/', code=302)
 
     if request.method == 'GET':
@@ -205,7 +205,7 @@ def sequences_create():
     """
     # redirects to form motif index page if `query_id` cookie not set
     if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
-        flash('Must select motifs before this step!')
+        flash('Must select motifs to analyze before continuing to subsequent steps!')
         return redirect('/form/motif/', code=302)
 
     if request.method == 'GET':
@@ -255,6 +255,7 @@ def sequences_upload():
 
     # returns form page if file not found in request data
     if 'fasta_file' not in request.files:
+        flash('ERROR! File not found in upload form! Please try again!')
         return redirect(request.url)
 
     file = request.files['fasta_file']
@@ -263,23 +264,37 @@ def sequences_upload():
     # length of filename includes `.fasta` so at least 7 characters
     # for valid filename
     if len(file.filename) < 7:
+        flash('ERROR! Invalid filename! Please try again!')
         return redirect(request.url)
 
     # creates collection document with data
     if file and helpers.is_allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file_path = os.path.join(os.getcwd(), 'uploads', filename)
+        file.save(file_path)
 
         # do stuff with file
+        collection = helpers.format_file_fasta(file_path)
+        if collection is not False:
+            mongo.db.collection.insert_one({
+                'collection_name': request.form['collection_name'],
+                'collection_type': request.form['collection_type'],
+                'collection': collection,
+                'datetime_added': datetime.utcnow(),
+                'user': 'default',
+            })
+            return redirect('/sequences/', code=302)
 
-        return redirect('/sequences/', code=302)
+    # catchall error handler !!!REFINE!!!
+    flash('ERROR! Not allowed filename or other error!')
+    return redirect(request.url)
 
 
 @app.route('/options/', methods=['GET', 'POST'])
 def form_options():
     # redirects to form motif index page if `query_id` cookie not set
     if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
-        flash('Must select motifs before this step!')
+        flash('Must select motifs to analyze before continuing to subsequent steps!')
         return redirect('/form/motif/', code=302)
 
     if request.method == 'GET':
@@ -313,7 +328,7 @@ def form_options():
 def results():
     # redirects to form motif index page if `query_id` cookie not set
     if 'query_id' not in request.cookies or len(request.cookies['query_id']) == 0:
-        flash('Must select motifs before this step!')
+        flash('Must select motifs to analyze before continuing to subsequent steps!')
         return redirect('/form/motif/', code=302)
 
     # get `query` document from stored cookie
