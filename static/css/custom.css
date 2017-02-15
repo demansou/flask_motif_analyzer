@@ -24,3 +24,8 @@ footer {
 .is-breakable {
   word-break: break-word;
 }
+
+/* for motif highlighting */
+.highlight {
+    background-color: yellow;
+}

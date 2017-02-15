@@ -41,6 +41,11 @@
 
             $("#download_link").hide();
 
+            $.initialize(".motif-string", function() {
+                var re = new RegExp($(this).attr('id'));
+                $(this).highlightRegex(re);
+            })
+
         });
 
         function checkQueryStatus () {
@@ -60,19 +65,12 @@
 
                 for (var i = 0; i < data.length; i++) {
 
-                    var outerTableHTML = "<table class=\"table table-bordered table-responsive\">"
-                        + "<tr><td><strong>Sequence Description</strong></td><td class=\"is-breakable\">"
-                        + data[i].sequence.sequence_description + "</td></tr>"
-                        + "<tr><td><strong>Sequence</strong></td><td class=\"is-breakable\">"
-                        + data[i].sequence.sequence + "</td></tr>"
-                        + "<tr><td><strong>Motif(s)</strong></td><td class=\"is-breakable\">";
+                    var outerTableHTML = createOuterTableHeader(data[i].sequence.sequence_description, data[i].sequence.sequence);
 
                     var analysisArray = data[i].analysis;
                     for (var j = 0; j < analysisArray.length; j++) {
 
-                        var innerTableHTML = "<table class=\"table table-bordered table-hover table-responsive\">"
-                            + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
-                            + analysisArray[j].motif + "</td><td></td></tr>";
+                        var innerTableHTML = createInnerTableHeader(analysisArray[j].motif);
 
                         var motifDataArray = analysisArray[j].motif_data;
                         if (motifDataArray) {
@@ -91,26 +89,12 @@
 
                                         if (l === 0) {
                                             motifBegin = parseInt(motifArray[l].span[0]);
-                                            console.log(motifBegin);
                                         }
                                         if (l === motifArray.length - 1) {
                                             motifEnd = parseInt(motifArray[l].span[1]);
-                                            console.log(motifEnd);
                                         }
                                     }
-                                    innerTableHTML += "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
-                                        + motifDataString + "</td><td>"
-                                        + "<button type=\"button\" class=\"btn btn-primary btn-block\" data-toggle=\"modal\""
-                                        + "data-target=\"#fullscreen_modal_" + i + "_" + j + "_" + k + "\">"
-                                        + "See Motif</button><div class=\"modal modal-fullscreen fade\""
-                                        + "id=\"fullscreen_modal_" + i + "_" + j + "_" + k + "\" role=\"dialog\" aria-hidden=\"true\">"
-                                        + "<div class=\"modal-dialog\"><div class=\"modal-content\">"
-                                        + "<div class=\"modal-header\">"
-                                        + "<button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>"
-                                        + "<h4>" + motifDataString + "</h4></div>"
-                                        + "<div class=\"modal-body\">" + formatMotifDisplay(data[i].sequence.sequence, motifBegin, motifEnd) +"</div>"
-                                        + "</div></div></div>"
-                                        + "</td></tr>";
+                                    innerTableHTML += createInnerTableRow(motifDataString, data[i].sequence.sequence, analysisArray[j].motif, motifBegin, motifEnd, i, j, k);
                                 }
 
                             }
@@ -129,11 +113,41 @@
             })
         }
 
-        function formatMotifDisplay(sequence, motifBegin, motifEnd) {
+        function createOuterTableHeader(sequenceDescription, sequence) {
+            return "<table class=\"table table-bordered table-responsive\">"
+                        + "<tr><td><strong>Sequence Description</strong></td><td class=\"is-breakable\">"
+                        + sequenceDescription + "</td></tr>"
+                        /*+ "<tr><td><strong>Sequence</strong></td><td class=\"is-breakable\">"
+                        + sequence + "</td></tr>"*/
+                        + "<tr><td><strong>Motif(s)</strong></td><td class=\"is-breakable\">";
+        }
+
+        function createInnerTableHeader(motif) {
+            return "<table class=\"table table-bordered table-hover table-responsive\">"
+                        + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
+                        + motif + "</td><td></td></tr>"
+        }
+
+        function createInnerTableRow(motifDataString, sequence, motif, motifBegin, motifEnd, i, j, k) {
+            return "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
+                        + motifDataString + "</td><td>"
+                        + "<button type=\"button\" class=\"btn btn-primary btn-block\" data-toggle=\"modal\""
+                        + "data-target=\"#fullscreen_modal_" + i + "_" + j + "_" + k + "\">"
+                        + "See Motif</button><div class=\"modal modal-fullscreen fade\""
+                        + "id=\"fullscreen_modal_" + i + "_" + j + "_" + k + "\" role=\"dialog\" aria-hidden=\"true\">"
+                        + "<div class=\"modal-dialog\"><div class=\"modal-content\">"
+                        + "<div class=\"modal-header\">"
+                        + "<button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>"
+                        + "<h4>" + motifDataString + "</h4></div>"
+                        + "<div class=\"modal-body\">" + formatMotifDisplay(sequence, motif, motifBegin, motifEnd) +"</div>"
+                        + "</div></div></div>"
+                        + "</td></tr>";
+        }
+
+        function formatMotifDisplay(sequence, motifRegex, motifBegin, motifEnd) {
             var newSequence = [];
             newSequence.push(sequence.substring(0, motifBegin));
-            var motif = "<strong>" + sequence.substring(motifBegin, motifEnd) + "</strong>";
-            console.log(motif);
+            var motif = "<strong><span class=\"motif-string\" id=\"" + motifRegex + "\">" + sequence.substring(motifBegin, motifEnd) + "</span></strong>";
             newSequence.push(motif);
             newSequence.push(sequence.substring(motifEnd, sequence.length));
             return newSequence.join("");
