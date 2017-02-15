@@ -352,7 +352,6 @@ def query_status():
 
 @app.route('/get_results/', methods=['POST'])
 def get_results():
-    # query = mongo.db.query.find_one({'_id': ObjectId(request.cookies.get('query_id'))})
     query = mongo.db.result.find({
         '$and': [
             {'query_id': ObjectId(request.cookies.get('query_id'))},

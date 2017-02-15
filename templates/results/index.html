@@ -72,13 +72,15 @@
 
                         var innerTableHTML = "<table class=\"table table-bordered table-hover table-responsive\">"
                             + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
-                            + analysisArray[j].motif + "</td></tr>";
+                            + analysisArray[j].motif + "</td><td></td></tr>";
 
                         var motifDataArray = analysisArray[j].motif_data;
                         if (motifDataArray) {
                             for (var k = 0; k < motifDataArray.length; k++) {
 
                                 var motifDataString = "";
+                                var motifBegin = -1;
+                                var motifEnd = -1;
 
                                 var motifArray = motifDataArray[k];
                                 if (motifArray) {
@@ -86,9 +88,29 @@
                                         motifDataString += motifArray[l].group + ": ["
                                             + motifArray[l].span[0] + ", "
                                             + motifArray[l].span[1] + "] ";
+
+                                        if (l === 0) {
+                                            motifBegin = parseInt(motifArray[l].span[0]);
+                                            console.log(motifBegin);
+                                        }
+                                        if (l === motifArray.length - 1) {
+                                            motifEnd = parseInt(motifArray[l].span[1]);
+                                            console.log(motifEnd);
+                                        }
                                     }
                                     innerTableHTML += "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
-                                        + motifDataString + "</td></tr>";
+                                        + motifDataString + "</td><td>"
+                                        + "<button type=\"button\" class=\"btn btn-primary btn-block\" data-toggle=\"modal\""
+                                        + "data-target=\"#fullscreen_modal_" + i + "_" + j + "_" + k + "\">"
+                                        + "See Motif</button><div class=\"modal modal-fullscreen fade\""
+                                        + "id=\"fullscreen_modal_" + i + "_" + j + "_" + k + "\" role=\"dialog\" aria-hidden=\"true\">"
+                                        + "<div class=\"modal-dialog\"><div class=\"modal-content\">"
+                                        + "<div class=\"modal-header\">"
+                                        + "<button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>"
+                                        + "<h4>" + motifDataString + "</h4></div>"
+                                        + "<div class=\"modal-body\">" + formatMotifDisplay(data[i].sequence.sequence, motifBegin, motifEnd) +"</div>"
+                                        + "</div></div></div>"
+                                        + "</td></tr>";
                                 }
 
                             }
@@ -105,6 +127,16 @@
                     $("#download_link").show(1000);
                 }
             })
+        }
+
+        function formatMotifDisplay(sequence, motifBegin, motifEnd) {
+            var newSequence = [];
+            newSequence.push(sequence.substring(0, motifBegin));
+            var motif = "<strong>" + sequence.substring(motifBegin, motifEnd) + "</strong>";
+            console.log(motif);
+            newSequence.push(motif);
+            newSequence.push(sequence.substring(motifEnd, sequence.length));
+            return newSequence.join("");
         }
     </script>
 {% endblock %}
