@@ -381,7 +381,8 @@ def motif_analysis(query):
     """
     query = json.loads(query)
     # create shorter variables for motif frequency and frame size
-    motif_frequency = int(query['motif_frequency'])
+    # motif_frequency = int(query['motif_frequency'])
+    motif_frequency = 3
     motif_frame_size = int(query['motif_frame_size'])
 
     # create list with motifs
