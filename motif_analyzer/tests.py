@@ -1,10 +1,10 @@
-import unittest
 import os
 import pathlib
-
-import helpers
+import unittest
 
 from bson import ObjectId
+
+from motif_analyzer import helpers
 
 
 class TestFormatTextareaText(unittest.TestCase):

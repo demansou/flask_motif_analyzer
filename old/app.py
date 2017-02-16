@@ -1,21 +1,17 @@
-from flask import Flask
-from celery import Celery
-from flask_pymongo import PyMongo
-
-from flask import flash, request, render_template, redirect, send_file
-
-from werkzeug.utils import secure_filename
-
-from bson.objectid import ObjectId
-from bson import json_util
-
-from datetime import datetime
-
 import json
 import os
+from datetime import datetime
 
 import choices
-import helpers
+from bson import json_util
+from bson.objectid import ObjectId
+from celery import Celery
+from flask import Flask
+from flask import flash, request, render_template, redirect, send_file
+from flask_pymongo import PyMongo
+from werkzeug.utils import secure_filename
+
+from motif_analyzer import helpers
 
 app = Flask(__name__, static_url_path='/static')
 

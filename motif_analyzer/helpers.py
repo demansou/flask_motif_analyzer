@@ -1,17 +1,19 @@
 """
 This contains
 """
+from motif_analyzer import mongo
+from . import celery_tasks
 
-import os
-import re
 import csv
+import os
 import pathlib
-
-from bson.objectid import ObjectId
+import re
 from io import StringIO
-from Bio import SeqIO
 
-import choices
+from Bio import SeqIO
+from bson.objectid import ObjectId
+
+from motif_analyzer import choices
 
 
 def is_allowed_file(filename):
@@ -147,7 +149,7 @@ def write_results_to_csv(query, sequence, analysis_result):
 
     # parse csv filename from `query_id` string and create file path
     csv_filename = ''.join([str(query['_id']), '.csv'])
-    csv_file = os.path.join(os.getcwd(), 'downloads', csv_filename)
+    csv_file = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', csv_filename)
 
     # create csv file and populate header if file does not exist
     if not pathlib.Path(csv_file).is_file():
@@ -160,6 +162,47 @@ def write_results_to_csv(query, sequence, analysis_result):
     if len(data) <= query['sequence_count']:
         Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
     return True
+
+
+def motif_analysis(query):
+    """
+    Asynchronous query analysis via Celery
+    :param query:
+    :return:
+    """
+    # query = json.loads(query)
+    # create shorter variables for motif frequency and frame size
+    motif_frequency = int(query['motif_frequency'])
+    motif_frame_size = int(query['motif_frame_size'])
+
+    # create list with motifs
+    motif_list = []
+    for motif_id in query['motif_list']:
+        motif_query = mongo.db.motif.find_one({'_id': motif_id})
+        motif = motif_query['sequence_motif']
+        motif_list.append(motif)
+
+    # create list with collections
+    collection_list = []
+    for collection_id in query['collection_list']:
+        collection_query = mongo.db.collection.find_one({'_id': collection_id})
+        collection = collection_query['collection']
+        collection_list.append(collection)
+
+    # iterate through each sequence in each collection and do analysis
+    # does not add document to CSV or MongoDB if error encountered
+    for collection in collection_list:
+        for sequence in collection:
+            celery_tasks.analyze_sequence(query, sequence, motif_list, motif_frequency, motif_frame_size)
+
+    # update `query` document with `done`
+    mongo.db.query.update({
+        '_id': query['_id']
+    }, {
+        '$set': {
+            'done': True,
+        }
+    })
 
 
 class Private(object):
