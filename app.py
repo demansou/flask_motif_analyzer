@@ -337,7 +337,7 @@ def results():
 
     # start analysis
     # SET TO DELAY WHEN RUNNING IN LINUX
-    motif_analysis.delay(json.dumps(query, default=json_util.default))
+    motif_analysis(query)
 
     # render template with data for stats fields
     return render_template('/results/index.html', motifs=query['motifs_as_string'],
@@ -372,14 +372,13 @@ def get_file():
     return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')
 
 
-@celery.task()
 def motif_analysis(query):
     """
     Asynchronous query analysis via Celery
     :param query:
     :return:
     """
-    query = json.loads(query)
+    # query = json.loads(query)
     # create shorter variables for motif frequency and frame size
     motif_frequency = int(query['motif_frequency'])
     motif_frame_size = int(query['motif_frame_size'])
