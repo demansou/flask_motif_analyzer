@@ -17,6 +17,8 @@ import os
 import choices
 import helpers
 
+from helpers import analyze_sequence, motif_analysis
+
 app = Flask(__name__, static_url_path='/static')
 
 # Set Secret Key
@@ -36,9 +38,9 @@ mongo = PyMongo(app, config_prefix='MONGO')
 
 # Celery Settings
 app.config['CELERY_BROKER_URL'] = 'mongodb://db_admin:dbpass@127.0.0.1:27017/celery'
+app.config['CELERY_IMPORTS'] = ("helpers",)
 # ONLY NECESSARY FOR STORING RESULTS (RESULTS STORED IN WEB_QUERIES COLLECTION)
 # app.config['CELERY_RESULT_BACKEND'] = 'mongodb://db_admin:dbpass@127.0.0.1:27017/celery_task_results'
-
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
@@ -337,7 +339,7 @@ def results():
 
     # start analysis
     # SET TO DELAY WHEN RUNNING IN LINUX
-    helpers.motif_analysis.delay(query)
+    motif_analysis.delay(query)
 
     # render template with data for stats fields
     return render_template('/results/index.html', motifs=query['motifs_as_string'],
@@ -373,4 +375,4 @@ def get_file():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=8000)
