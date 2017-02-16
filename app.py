@@ -17,8 +17,6 @@ import os
 import choices
 import helpers
 
-from helpers import analyze_sequence, motif_analysis
-
 app = Flask(__name__, static_url_path='/static')
 
 # Set Secret Key
