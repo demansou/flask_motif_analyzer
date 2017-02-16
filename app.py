@@ -380,39 +380,38 @@ def motif_analysis(query):
     :return:
     """
     query = json.loads(query)
-    with app.app_context():
-        # create shorter variables for motif frequency and frame size
-        motif_frequency = int(query['motif_frequency'])
-        motif_frame_size = int(query['motif_frame_size'])
+    # create shorter variables for motif frequency and frame size
+    motif_frequency = int(query['motif_frequency'])
+    motif_frame_size = int(query['motif_frame_size'])
 
-        # create list with motifs
-        motif_list = []
-        for motif_id in query['motif_list']:
-            motif_query = mongo.db.motif.find_one({'_id': motif_id})
-            motif = motif_query['sequence_motif']
-            motif_list.append(motif)
+    # create list with motifs
+    motif_list = []
+    for motif_id in query['motif_list']:
+        motif_query = mongo.db.motif.find_one({'_id': motif_id})
+        motif = motif_query['sequence_motif']
+        motif_list.append(motif)
 
-        # create list with collections
-        collection_list = []
-        for collection_id in query['collection_list']:
-            collection_query = mongo.db.collection.find_one({'_id': collection_id})
-            collection = collection_query['collection']
-            collection_list.append(collection)
+    # create list with collections
+    collection_list = []
+    for collection_id in query['collection_list']:
+        collection_query = mongo.db.collection.find_one({'_id': collection_id})
+        collection = collection_query['collection']
+        collection_list.append(collection)
 
-        # iterate through each sequence in each collection and do analysis
-        # does not add document to CSV or MongoDB if error encountered
-        for collection in collection_list:
-            for sequence in collection:
-                analyze_sequence.delay(query, sequence, motif_list, motif_frequency, motif_frame_size)
+    # iterate through each sequence in each collection and do analysis
+    # does not add document to CSV or MongoDB if error encountered
+    for collection in collection_list:
+        for sequence in collection:
+            analyze_sequence.delay(query, sequence, motif_list, motif_frequency, motif_frame_size)
 
-        # update `query` document with `done`
-        mongo.db.query.update({
-            '_id': query['_id']
-        }, {
-            '$set': {
-                'done': True,
-            }
-        })
+    # update `query` document with `done`
+    mongo.db.query.update({
+        '_id': query['_id']
+    }, {
+        '$set': {
+            'done': True,
+        }
+    })
 
 
 @celery.task()
