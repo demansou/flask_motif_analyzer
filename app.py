@@ -339,7 +339,7 @@ def results():
 
     # start analysis
     # SET TO DELAY WHEN RUNNING IN LINUX
-    motif_analysis.delay(query)
+    helpers.motif_analysis.delay(json.dumps(query, default=json_util.default))
 
     # render template with data for stats fields
     return render_template('/results/index.html', motifs=query['motifs_as_string'],

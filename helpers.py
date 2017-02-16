@@ -10,6 +10,7 @@ import os
 import re
 import csv
 import pathlib
+import json
 
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -26,6 +27,7 @@ def motif_analysis(query):
     :param query:
     :return:
     """
+    query = json.loads(query)
     with app.app_context():
         # create shorter variables for motif frequency and frame size
         motif_frequency = query['motif_frequency']
