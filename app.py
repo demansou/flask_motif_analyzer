@@ -401,7 +401,7 @@ def motif_analysis(query):
     # does not add document to CSV or MongoDB if error encountered
     for collection in collection_list:
         for sequence in collection:
-            analyze_sequence.delay(query, sequence, motif_list, motif_frequency, motif_frame_size)
+            analyze_sequence.delay(json.dumps(query, default=json_util.default), sequence, motif_list, motif_frequency, motif_frame_size)
 
     # update `query` document with `done`
     mongo.db.query.update({
@@ -425,6 +425,8 @@ def analyze_sequence(query, sequence, motif_list, motif_frequency, motif_frame_s
     :param motif_frame_size:
     :return:
     """
+    json.loads(query)
+
     # ensures `sequence` param is dictionary
     if not isinstance(sequence, dict):
         return False
