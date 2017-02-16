@@ -36,7 +36,7 @@ mongo = PyMongo(app, config_prefix='MONGO')
 
 # Celery Settings
 app.config['CELERY_BROKER_URL'] = 'mongodb://db_admin:dbpass@127.0.0.1:27017/celery'
-app.config['CELERY_IMPORTS'] = ("helpers.motif_analysis", "helpers.analyze_sequence",)
+# app.config['CELERY_IMPORTS'] = ("helpers.motif_analysis", "helpers.analyze_sequence",)
 # ONLY NECESSARY FOR STORING RESULTS (RESULTS STORED IN WEB_QUERIES COLLECTION)
 # app.config['CELERY_RESULT_BACKEND'] = 'mongodb://db_admin:dbpass@127.0.0.1:27017/celery_task_results'
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
@@ -381,8 +381,7 @@ def motif_analysis(query):
     """
     query = json.loads(query)
     # create shorter variables for motif frequency and frame size
-    # motif_frequency = int(query['motif_frequency'])
-    motif_frequency = 3
+    motif_frequency = int(query['motif_frequency'])
     motif_frame_size = int(query['motif_frame_size'])
 
     # create list with motifs

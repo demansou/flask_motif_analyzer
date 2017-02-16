@@ -6,16 +6,12 @@ import os
 import re
 import csv
 import pathlib
-import json
 
-from datetime import datetime
 from bson.objectid import ObjectId
 from io import StringIO
 from Bio import SeqIO
 
 import choices
-
-
 
 
 def is_allowed_file(filename):
