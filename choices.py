@@ -1,3 +1,8 @@
+"""
+This file contains lists used by the Flask application.
+They are stored here for neatness
+"""
+
 # FILE TYPE UPLOADS ALLOWED BY SERVER
 ALLOWED_EXTENSIONS = {
     'fasta',

@@ -49,7 +49,8 @@ def app_home():
     Displays app front page
     :return template:
     """
-    response = app.make_response(render_template('frontpage.html'))
+    query = mongo.db.motif.find({'user': 'default'}).sort([('datetime_added', -1)]).limit(3)
+    response = app.make_response(render_template('frontpage.html', query=query))
     response.set_cookie('query_id', '')
     return response
 
@@ -336,7 +337,7 @@ def results():
 
     # start analysis
     # SET TO DELAY WHEN RUNNING IN LINUX
-    motif_analysis(query)
+    helpers.motif_analysis.delay(query)
 
     # render template with data for stats fields
     return render_template('/results/index.html', motifs=query['motifs_as_string'],
@@ -369,57 +370,6 @@ def get_file():
     file_name = ''.join([request.cookies.get('query_id'), '.csv'])
     file_path = os.path.join(os.getcwd(), 'downloads', file_name)
     return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')
-
-
-@celery.task()
-def motif_analysis(query):
-    """
-    Asynchronous query analysis via Celery
-    :param query:
-    :return:
-    """
-    # create shorter variables for motif frequency and frame size
-    motif_frequency = query['motif_frequency']
-    motif_frame_size = query['motif_frame_size']
-
-    # create list with motifs
-    motif_list = []
-    for motif_id in query['motif_list']:
-        motif_query = mongo.db.motif.find_one({'_id': motif_id})
-        motif = motif_query['sequence_motif']
-        motif_list.append(motif)
-
-    # create list with collections
-    collection_list = []
-    for collection_id in query['collection_list']:
-        collection_query = mongo.db.collection.find_one({'_id': collection_id})
-        collection = collection_query['collection']
-        collection_list.append(collection)
-
-    # iterate through each sequence in each collection and do analysis
-    # does not add document to CSV or MongoDB if error encountered
-    for collection in collection_list:
-        for sequence in collection:
-            analysis_result, motif_boolean = helpers.analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size)
-            if analysis_result is not False:
-                write_result = helpers.write_results_to_csv(query, sequence, analysis_result)
-                if write_result is not False:
-                    mongo.db.result.insert_one({
-                        'query_id': query['_id'],
-                        'sequence': sequence,
-                        'analysis': analysis_result,
-                        'has_motif': motif_boolean,
-                        'datetime_added': datetime.utcnow(),
-                    })
-
-    # update `query` document with `done`
-    mongo.db.query.update({
-        '_id': query['_id']
-    }, {
-        '$set': {
-            'done': True,
-        }
-    })
 
 
 if __name__ == '__main__':

@@ -1,90 +1,72 @@
+"""
+This contains
+"""
+
+from app import app
+from app import mongo
+from app import celery
+
 import os
 import re
 import csv
 import pathlib
 
-import choices
-
+from datetime import datetime
 from bson.objectid import ObjectId
-
 from io import StringIO
-
 from Bio import SeqIO
 
+import choices
 
-def is_allowed_file(filename):
+
+@celery.task()
+def motif_analysis(query):
     """
-    Returns boolean value determined by if file
-    is of allowed extension type
-    :param filename:
+    Asynchronous query analysis via Celery
+    :param query:
     :return:
     """
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in choices.ALLOWED_EXTENSIONS
+    with app.app_context():
+        # create shorter variables for motif frequency and frame size
+        motif_frequency = query['motif_frequency']
+        motif_frame_size = query['motif_frame_size']
+
+        # create list with motifs
+        motif_list = []
+        for motif_id in query['motif_list']:
+            motif_query = mongo.db.motif.find_one({'_id': motif_id})
+            motif = motif_query['sequence_motif']
+            motif_list.append(motif)
+
+        # create list with collections
+        collection_list = []
+        for collection_id in query['collection_list']:
+            collection_query = mongo.db.collection.find_one({'_id': collection_id})
+            collection = collection_query['collection']
+            collection_list.append(collection)
+
+        # iterate through each sequence in each collection and do analysis
+        # does not add document to CSV or MongoDB if error encountered
+        for collection in collection_list:
+            for sequence in collection:
+                analyze_sequence.delay(query, sequence, motif_list, motif_frequency, motif_frame_size)
+
+        # update `query` document with `done`
+        mongo.db.query.update({
+            '_id': query['_id']
+        }, {
+            '$set': {
+                'done': True,
+            }
+        })
 
 
-def format_textarea_text_fasta(input_text):
-    """
-    Convert textarea input text to list of
-    BioPython-parsed sequence dictionaries
-    :param input_text:
-    :return:
-    """
-    # ensure `input_text` param is string
-    if not isinstance(input_text, str):
-        return False
-
-    # ensure `input_text` param is not 0 length
-    if len(input_text) == 0:
-        return False
-
-    # parse input
-    fasta_list = Private.fasta_blob_to_list(input_text)
-    return Private.biopython_parse_fasta_list(fasta_list)
-
-
-def format_file_fasta(file_path):
-    """
-
-    :param file_path:
-    :return:
-    """
-    # ensure file exists
-    if not pathlib.Path(file_path).is_file():
-        return False
-
-    return Private.biopython_parse_fasta_file(file_path)
-
-
-def convert_string_ids_to_bson_objectids(string_list):
-    """
-    Converts string ids taken from html to BSON
-    ObjectIds readable by MongoDB
-    :param string_list:
-    :return list:
-    """
-    # ensure `string_list` is list
-    if not isinstance(string_list, list):
-        return False
-
-    # ensure each element of `string_list` is string
-    for string_id in string_list:
-        if not isinstance(string_id, str):
-            return False
-
-    # ensure `string_list` not empty
-    if len(string_list) == 0:
-        return False
-
-    objectid_list = []
-    for string_id in string_list:
-        objectid_list.append(ObjectId(string_id))
-    return objectid_list
-
-
-def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
+@celery.task()
+def analyze_sequence(query, sequence, motif_list, motif_frequency, motif_frame_size):
     """
     Performs sequence analysis on a single BioPython Sequence object using
     motif parameters
+    :param query:
     :param sequence:
     :param motif_list:
     :param motif_frequency:
@@ -171,7 +153,85 @@ def analyze_sequence(sequence, motif_list, motif_frequency, motif_frame_size):
         }
         result_list.append(sequence_result)
 
-    return result_list, motif_boolean
+    # append result to csv and database
+    write_result = write_results_to_csv(query, sequence, result_list)
+    if write_result is not False:
+        mongo.db.result.insert_one({
+            'query_id': query['_id'],
+            'sequence': sequence,
+            'analysis': result_list,
+            'has_motif': motif_boolean,
+            'datetime_added': datetime.utcnow(),
+        })
+
+
+def is_allowed_file(filename):
+    """
+    Returns boolean value determined by if file
+    is of allowed extension type
+    :param filename:
+    :return:
+    """
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in choices.ALLOWED_EXTENSIONS
+
+
+def format_textarea_text_fasta(input_text):
+    """
+    Convert textarea input text to list of
+    BioPython-parsed sequence dictionaries
+    :param input_text:
+    :return:
+    """
+    # ensure `input_text` param is string
+    if not isinstance(input_text, str):
+        return False
+
+    # ensure `input_text` param is not 0 length
+    if len(input_text) == 0:
+        return False
+
+    # parse input
+    fasta_list = Private.fasta_blob_to_list(input_text)
+    return Private.biopython_parse_fasta_list(fasta_list)
+
+
+def format_file_fasta(file_path):
+    """
+
+    :param file_path:
+    :return:
+    """
+    # ensure file exists
+    if not pathlib.Path(file_path).is_file():
+        return False
+
+    return Private.biopython_parse_fasta_file(file_path)
+
+
+def convert_string_ids_to_bson_objectids(string_list):
+    """
+    Converts string ids taken from html to BSON
+    ObjectIds readable by MongoDB
+    :param string_list:
+    :return list:
+    """
+    # ensure `string_list` is list
+    if not isinstance(string_list, list):
+        return False
+
+    # ensure each element of `string_list` is string
+    for string_id in string_list:
+        if not isinstance(string_id, str):
+            return False
+
+    # ensure `string_list` not empty
+    if len(string_list) == 0:
+        return False
+
+    objectid_list = []
+    for string_id in string_list:
+        objectid_list.append(ObjectId(string_id))
+    return objectid_list
 
 
 def write_results_to_csv(query, sequence, analysis_result):
@@ -249,7 +309,6 @@ def write_results_to_csv(query, sequence, analysis_result):
         data = fp.readlines()
         fp.close()
     if len(data) <= query['sequence_count']:
-        # print('%d' % len(data))
         Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
     return True
 
@@ -257,6 +316,11 @@ def write_results_to_csv(query, sequence, analysis_result):
 class Private(object):
     @staticmethod
     def fasta_blob_to_list(fasta_blob):
+        """
+
+        :param fasta_blob:
+        :return:
+        """
         fasta_list = []
         for sequence_str in fasta_blob.split('>'):
             if len(sequence_str) > 0:
