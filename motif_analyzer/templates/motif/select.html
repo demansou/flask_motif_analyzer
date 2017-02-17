@@ -10,11 +10,11 @@
             {{ error }}
         </div>
     {% endif %}
-    <form action="/motif/" class="form-horizontal" method="post">
+    <form action="/motifs/" class="form-horizontal" method="post">
         <fieldset class="form-group">
             <div class="row">
                 <div class="col-xs-12 top15">
-                    <a href="/motif/create/" class="btn btn-default btn-block btn-lg">Create Motif</a>
+                    <a href="/motifs/create/" class="btn btn-default btn-block btn-lg">Create Motif</a>
                 </div>
             </div>
             <div class="row">
@@ -22,12 +22,12 @@
                     <h3>User-Generated Motifs</h3>
                     <p class="text-muted">These are YOUR motifs created using the application's motif creation tool.</p>
                 </div>
-            {% for motif in default_motifs %}
+            {% for motif in motifs %}
                 <div class="col-xs-5 col-sm-3 col-xs-offset-1">
                     <div class="checkbox">
                         <label>
                             <input type="checkbox" id="motif_list_{{ loop.index0 }}" name="motif_list[]" value="{{ motif['_id'] }}">
-                            {{ motif['sequence_motif'] }}
+                            {{ motif['motif'] }}
                         </label>
                     </div>
                 </div> <!-- /.col-xs-11 .col-sm-5 .col-xs-offset-1 -->
@@ -39,7 +39,7 @@
                     <button type="submit" class="btn btn-primary btn-block btn-lg">Submit</button>
                 </div> <!-- /col-sm-4 col-xs-12 top15 -->
                 <div class="col-sm-3 col-xs-12 top15">
-                    <a href="/" class="btn btn-default btn-block btn-lg">Go Back</a>
+                    <a href="/sequences/" class="btn btn-default btn-block btn-lg">Go Back</a>
                 </div> <!-- /col-sm-4 col-xs-12 top15 -->
                 <div class="col-sm-3 col-xs-12 top15">
                     <button type="reset" class="btn btn-danger btn-block btn-lg">Reset Form</button>

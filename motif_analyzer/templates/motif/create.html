@@ -10,54 +10,59 @@
             {{ error }}
         </div>
     {% endif %}
-    <form action="/motif/create/" class="form-horizontal" method="post">
+    <form action="/motifs/create/" class="form-horizontal" method="post">
 
         <fieldset class="form-group">
             <div class="row">
-                <label for="motif" class="col-xs-3 control-label">Full Motif</label>
-                <div class="col-xs-12 col-sm-9">
-                    <input type="text" class="form-control" id="motif" name="motif" readonly>
+                <div class="col-xs-12">
+                    <h3>Motif</h3>
+                    <p class="text-muted">The motif is the combination of amino acid letters to search for in sequences.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-9 top15">
+                    <input type="text" class="form-control" id="motif" name="motif" required readonly>
+                </div>
+                <div class="col-xs-12 col-sm-3 top15">
+                    <button class="btn btn-danger btn-block" id="clear_motif" type="button">Clear Motif</button>
                 </div>
             </div>
         </fieldset>
         <fieldset class="form-group">
             <div class="row">
-                <label for="motif_part" class="col-xs-3 control-label top10">Motif Part</label>
-                <div class="col-xs-12 col-sm-7 top10">
-                    <input type="text" class="form-control" id="motif_part" name="motif_part" readonly>
+                <div class="col-xs-12">
+                    <h3>Amino Acids</h3>
+                    <p class="text-muted">You can choose one or more amino acid for each string position in a `motif`.
+                    Selecting more than one amino acid checkbox infers a logical `OR`.</p>
                 </div>
-                <div class="col-xs-12 col-sm-2 top10">
-                    <button class="btn btn-default btn-block" id="add_motif_part_to_full_motif" type="button">Add</button>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 top15">
+                    <button class="btn btn-default btn-block" id="add_to_motif" type="button">Add Checked To Motif</button>
                 </div>
+            </div>
+            <div class="row">
+                {% for value, display in amino_acids %}
+                    <div class="col-xs-6 col-sm-3 top10">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="motif_list_{{ loop.index0 }}" name="motif_list[]" value="{{ value }}">{{ display }}
+                            </label>
+                        </div>
+
+                    </div>
+                {% endfor %}
             </div>
         </fieldset>
         <fieldset class="form-group">
             <div class="row">
-                <label for="motif_part" class="col-xs-3 control-label top10">Amino Acid List</label>
-                <div class="col-xs-12 col-sm-5 top10">
-                    <select class="form-control" id="motif_list" name="motif_list">
-                        {% for value, display in motif_list %}
-                            <option value="{{ value }}">{{ display }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-xs-12 col-sm-2 top10">
-                    <button class="btn btn-default btn-block" id="add_to_motif_part" type="button">Add</button>
-                </div>
-                <div class="col-xs-12 col-sm-2 top10">
-                    <button class="btn btn-danger btn-block" id="clear_motif_part" type="button">Clear</button>
-                </div>
-            </div>
-        </fieldset>
-        <fieldset class="form-group">
-            <div class="row">
-                <div class="col-sm-6 col-xs-12 top15">
+                <div class="col-sm-6 col-xs-12 top30">
                     <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Motif</button>
                 </div>
-                <div class="col-sm-3 col-xs-12 top15">
-                    <a class="btn btn-lg btn-block btn-default" href="/motif/">Go Back</a>
+                <div class="col-sm-3 col-xs-12 top30">
+                    <a class="btn btn-lg btn-block btn-default" href="/motifs/">Go Back</a>
                 </div>
-                <div class="col-sm-3 col-xs-12 top15">
+                <div class="col-sm-3 col-xs-12 top30">
                     <button class="btn btn-lg btn-danger btn-block" type="reset">Clear Form</button>
                 </div>
             </div>
@@ -69,46 +74,34 @@
     <script>
         $(document).ready(function() {
 
-            /* */
-            $('#add_motif_part_to_full_motif').click(function() {
-                var fullMotif = $('#motif').val();
-                var motifPart = $('#motif_part').val();
-                $('#motif').val((fullMotif + motifPart));
-                $('#motif_part').val('');
-                motifPartList = [];
-            });
+            /* for adding to motif */
+            $('#add_to_motif').click(function() {
+                var selectedMotifList = [];
 
-            /* for adding motif parts to full motif */
-            $('#add_to_motif_part').click(function() {
-                $('#motif_part').val(addMotifPart($('#motif_list').val()));
+                $(':checkbox:checked').each(function() {
+                    selectedMotifList.push($(this).val());
+                });
+
+                if (selectedMotifList.length > 1) {
+                    var returnString = '';
+                    for (var i = 0; i < selectedMotifList.length; i++) {
+                        returnString += selectedMotifList[i];
+                    }
+                    $('#motif').val(($('#motif').val() + '[' + returnString + ']'));
+                }
+                else if (selectedMotifList.length === 1) {
+                    $('#motif').val(($('#motif').val() + selectedMotifList[0]))
+                }
+
+                $('input:checkbox').each(function() {
+                    this.checked = false;
+                })
             });
 
             /* for clearing motif parts from field and clearing list stored in memory */
-            $('#clear_motif_part').click(function() {
-                $('#motif_part').val('');
-                motifPartList = [];
+            $('#clear_motif').click(function() {
+                $('#motif').val('');
             });
         });
-
-        /* for storing current motif parts */
-        var motifPartList = [];
-
-        /* for adding to current motif part */
-        function addMotifPart(newMotifPart) {
-            motifPartList.push(newMotifPart);
-            var motifPartString = '';
-            for (var i = 0; i < motifPartList.length; i++) {
-                motifPartString += motifPartList[i];
-            }
-            if (motifPartList.length <= 0) {
-                return '';
-            }
-            else if (motifPartList.length === 1) {
-                return motifPartString;
-            }
-            else {
-                return '[' + motifPartString + ']';
-            }
-        }
     </script>
 {% endblock %}
