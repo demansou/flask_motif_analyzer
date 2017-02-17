@@ -121,32 +121,16 @@ def select_options():
     :return:
     """
     if request.method == 'GET':
-        # grab motif_id_list cookie value
-        motif_cookie_list = request.cookies['motif_id_list'].split(',')
-
-        # split list into ObjectIds
-        motif_id_list = []
-        for motif_id_str in motif_cookie_list:
-            motif_id_list.append(ObjectId(motif_id_str))
-
         # query MongoDB with each ObjectId for motifs
         motif_str_list = []
-        for motif_id in motif_id_list:
-            motif_str_list.append(Motif.find_one(document_id=motif_id)['motif'])
+        for motif_id in request.cookies['motif_id_list'].split(','):
+            motif_str_list.append(Motif.find_one(document_id=ObjectId(motif_id))['motif'])
         motif_str_list = ', '.join(motif_str_list)
-
-        # grab collection_id_list cookie value
-        collection_cookie_list = request.cookies['collection_id_list'].split(',')
-
-        # split list into ObjectIds
-        collection_id_list = []
-        for collection_id_str in collection_cookie_list:
-            collection_id_list.append(ObjectId(collection_id_str))
 
         # query MongoDB with each ObjectId for count
         sequence_count = 0
-        for collection_id in collection_id_list:
-            sequence_count += Sequence.find(collection_id=collection_id).count()
+        for collection_id in request.cookies['collection_id_list'].split(','):
+            sequence_count += Sequence.find(collection_id=ObjectId(collection_id)).count()
 
         return render_template('/options/index.html', motif_str_list=motif_str_list,
                                sequence_count=sequence_count)
@@ -160,11 +144,48 @@ def select_options():
     query_id = Query.insert_one(
         motif_id_list=motif_id_list,
         collection_id_list=collection_id_list,
-        motif_frequency=request.form['motif_frequency'],
-        motif_frame_size=request.form['motif_frame_size'],
+        motif_frequency=int(request.form['motif_frequency']),
+        motif_frame_size=int(request.form['motif_frame_size']),
         user=request.cookies['user']
     )
 
+    if not query_id:
+        flash('ERROR! Error inserting new query into database! Please try again!')
+        return redirect(request.url)
+
     response = app.make_response(redirect('/results/'))
-    response.set_cookie('query_id', query_id)
+    response.set_cookie('query_id', str(query_id))
     return response
+
+
+@app.route('/results/', methods=['GET'])
+def view_results():
+    """
+    Displays analysis results
+    :return:
+    """
+    # ensures a query id is present in cookies
+    if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
+        flash('ERROR! Query cookie not present! Please start over!')
+        return redirect('/')
+
+    result = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
+
+    # ensures that query id is valid
+    if not result:
+        flash('ERROR! Query not found in database! Please start over!')
+        return redirect('/')
+
+    # query MongoDB with each ObjectId for motifs
+    motif_str_list = []
+    for motif_id in result['motif_id_list']:
+        motif_str_list.append(Motif.find_one(document_id=ObjectId(motif_id))['motif'])
+    motif_str_list = ', '.join(motif_str_list)
+
+    # query MongoDB with each ObjectId for count
+    sequence_count = 0
+    for collection_id in request.cookies['collection_id_list'].split(','):
+        sequence_count += Sequence.find(collection_id=ObjectId(collection_id)).count()
+
+    return render_template('/results/index.html', motif_str_list=motif_str_list, sequence_count=sequence_count,
+                           motif_frequency=result['motif_frequency'], motif_frame_size=result['motif_frame_size'])
