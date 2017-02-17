@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="well">
-        <h3>Analysis Details</h3>
+        <h3>Analysis Parameters</h3>
         <p><strong>Motifs:</strong> {{ motif_str_list }}</p>
         <p><strong>Number of Sequences:</strong> {{ sequence_count }}</p>
         <p><strong>Motif Frequency (in frame):</strong> {{ motif_frequency }} Occurrences</p>
@@ -34,123 +34,6 @@
 
 {% block script %}
     <script>
-        var interval = null;
-
-        $(document).ready( function() {
-            interval = setInterval(checkQueryStatus(), 10000);
-
-            $("#download_link").hide();
-
-            $.initialize(".motif-string", function() {
-                var re = new RegExp($(this).attr('id'));
-                $(this).highlightRegex(re);
-            })
-
-        });
-
-        function checkQueryStatus () {
-            $.post("/status/", function (data) {
-                data = $.parseJSON(data);
-                if (data.query_done === true) {
-                    $("#analysis_completed").text('Completed!');
-                    clearInterval(interval);
-                    getResults();
-                }
-            });
-        }
-
-        function getResults () {
-            $.post("/get_results/", function (data) {
-                data = $.parseJSON(data);
-
-                for (var i = 0; i < data.length; i++) {
-
-                    var outerTableHTML = createOuterTableHeader(data[i].sequence.sequence_description, data[i].sequence.sequence);
-
-                    var analysisArray = data[i].analysis;
-                    for (var j = 0; j < analysisArray.length; j++) {
-
-                        var innerTableHTML = createInnerTableHeader(analysisArray[j].motif);
-
-                        var motifDataArray = analysisArray[j].motif_data;
-                        if (motifDataArray) {
-                            for (var k = 0; k < motifDataArray.length; k++) {
-
-                                var motifDataString = "";
-                                var motifBegin = -1;
-                                var motifEnd = -1;
-
-                                var motifArray = motifDataArray[k];
-                                if (motifArray) {
-                                    for (var l = 0; l < motifArray.length; l++) {
-                                        motifDataString += motifArray[l].group + ": ["
-                                            + motifArray[l].span[0] + ", "
-                                            + motifArray[l].span[1] + "] ";
-
-                                        if (l === 0) {
-                                            motifBegin = parseInt(motifArray[l].span[0]);
-                                        }
-                                        if (l === motifArray.length - 1) {
-                                            motifEnd = parseInt(motifArray[l].span[1]);
-                                        }
-                                    }
-                                    innerTableHTML += createInnerTableRow(motifDataString, data[i].sequence.sequence, analysisArray[j].motif, motifBegin, motifEnd, i, j, k);
-                                }
-
-                            }
-                        }
-
-
-                        innerTableHTML += "</table>";
-                        outerTableHTML += innerTableHTML;
-                    }
-
-                    outerTableHTML += "</td></tr></table>";
-
-                    $("#results").append(outerTableHTML);
-                    $("#download_link").show(1000);
-                }
-            })
-        }
-
-        function createOuterTableHeader(sequenceDescription, sequence) {
-            return "<table class=\"table table-bordered table-responsive\">"
-                        + "<tr><td><strong>Sequence Description</strong></td><td class=\"is-breakable\">"
-                        + sequenceDescription + "</td></tr>"
-                        /*+ "<tr><td><strong>Sequence</strong></td><td class=\"is-breakable\">"
-                        + sequence + "</td></tr>"*/
-                        + "<tr><td><strong>Motif(s)</strong></td><td class=\"is-breakable\">";
-        }
-
-        function createInnerTableHeader(motif) {
-            return "<table class=\"table table-bordered table-hover table-responsive\">"
-                        + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
-                        + motif + "</td><td></td></tr>"
-        }
-
-        function createInnerTableRow(motifDataString, sequence, motif, motifBegin, motifEnd, i, j, k) {
-            return "<tr><td><strong>Motif Data</strong></td><td class=\"is-breakable\">"
-                        + motifDataString + "</td><td>"
-                        + "<button type=\"button\" class=\"btn btn-primary btn-block\" data-toggle=\"modal\""
-                        + "data-target=\"#fullscreen_modal_" + i + "_" + j + "_" + k + "\">"
-                        + "See Motif</button><div class=\"modal modal-fullscreen fade\""
-                        + "id=\"fullscreen_modal_" + i + "_" + j + "_" + k + "\" role=\"dialog\" aria-hidden=\"true\">"
-                        + "<div class=\"modal-dialog\"><div class=\"modal-content\">"
-                        + "<div class=\"modal-header\">"
-                        + "<button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>"
-                        + "<h4>" + motifDataString + "</h4></div>"
-                        + "<div class=\"modal-body\">" + formatMotifDisplay(sequence, motif, motifBegin, motifEnd) +"</div>"
-                        + "</div></div></div>"
-                        + "</td></tr>";
-        }
-
-        function formatMotifDisplay(sequence, motifRegex, motifBegin, motifEnd) {
-            var newSequence = [];
-            newSequence.push(sequence.substring(0, motifBegin));
-            var motif = "<strong><span class=\"motif-string\" id=\"" + motifRegex + "\">" + sequence.substring(motifBegin, motifEnd) + "</span></strong>";
-            newSequence.push(motif);
-            newSequence.push(sequence.substring(motifEnd, sequence.length));
-            return newSequence.join("");
-        }
+        $.post('/start_analysis/');
     </script>
 {% endblock %}

@@ -95,24 +95,6 @@ class Sequence(object):
         
         return None
 
-    @staticmethod
-    def update_one(document_id=None, **kwargs):
-        """
-
-        :param document_id:
-        :param kwargs:
-        :return integer:
-        """
-        if document_id and isinstance(document_id, ObjectId):
-            modified_count = 0
-            for key, value in kwargs.items():
-                if key == 'sequence_id' or key == 'sequence_name' or key == 'sequence_description' or key == 'sequence':
-                    modified_count += mongo.db.query.update_one({'_id': document_id},
-                                                                {'$set': {key: value}}, upsert=False).modified_count
-            return modified_count
-
-        return None
-
 
 class Motif(object):
     """
@@ -180,24 +162,6 @@ class Motif(object):
         
         return None
 
-    @staticmethod
-    def update_one(document_id=None, **kwargs):
-        """
-
-        :param document_id:
-        :param kwargs:
-        :return:
-        """
-        if document_id and isinstance(document_id, ObjectId):
-            modified_count = 0
-            for key, value in kwargs.items():
-                if key == 'motif' or key == 'user':
-                    modified_count += mongo.db.motif.update_one({'_id': document_id},
-                                                                {'$set': {key: value}}, upsert=False).modified_count
-            return modified_count
-
-        return None
-
 
 class Query(object):
     """
@@ -253,25 +217,6 @@ class Query(object):
         if document_id and isinstance(document_id, ObjectId):
             return mongo.db.query.delete_one({'_id': document_id}).deleted_count
         
-        return None
-
-    @staticmethod
-    def update_one(document_id=None, **kwargs):
-        """
-
-        :param document_id:
-        :param kwargs:
-        :return integer:
-        """
-        if document_id and isinstance(document_id, ObjectId):
-            modified_count = 0
-            for key, value in kwargs.items():
-                if key == 'motif_id_list' or key == 'collection_id_list' or key == 'motif_frequency' \
-                        or key == 'motif_frame_size':
-                    modified_count += mongo.db.query.update_one({'_id': document_id},
-                                                                {'$set': {key: value}}, upsert=False).modified_count
-            return modified_count
-
         return None
 
 
@@ -349,25 +294,6 @@ class Collection(object):
 
         return None
 
-    @staticmethod
-    def update_one(document_id=None, **kwargs):
-        """
-
-        :param document_id:
-        :param kwargs:
-        :return integer:
-        """
-        update_dict = {}
-        for key, value in kwargs.items():
-            if key == 'collection_name' or key == 'collection_type':
-                update_dict.update({key: value})
-
-        if document_id and isinstance(document_id, ObjectId):
-            return mongo.db.collection.update_one({'_id': document_id},
-                                                  {'$set': update_dict}, upsert=False).modified_count
-
-        return None
-
 
 class Result(object):
     """
@@ -375,21 +301,24 @@ class Result(object):
     """
 
     @staticmethod
-    def insert_one(query_id=None, sequence=None, analysis=None, has_motif=None, user=None):
+    def insert_one(query_id=None, sequence_description=None, sequence=None, analysis=None, has_motif=None, user=None):
         """
         Creates a document and inserts it into MongoDB collection
         :param query_id:
+        :param sequence_description:
         :param sequence:
         :param analysis:
         :param has_motif:
         :param user:
         :return ObjectId:
         """
-        if query_id and sequence and analysis and has_motif and user and isinstance(query_id, ObjectId)\
-                and isinstance(sequence, dict) and isinstance(analysis, dict) and isinstance(has_motif, bool)\
+        if query_id and sequence_description and sequence and analysis and has_motif and user\
+                and isinstance(query_id, ObjectId) and isinstance(sequence_description, str)\
+                and isinstance(sequence, str) and isinstance(analysis, list) and isinstance(has_motif, bool)\
                 and isinstance(user, str):
             document = {
                 'query_id': query_id,
+                'sequence_description': sequence_description,
                 'sequence': sequence,
                 'analysis': analysis,
                 'has_motif': has_motif,
@@ -455,23 +384,5 @@ class Result(object):
             return mongo.db.result.delete_many({'user': user})
         elif query_id and user and isinstance(query_id, ObjectId) and isinstance(user, str):
             return mongo.db.result.delete_many({'$and': [{'query_id': query_id}, {'user': user}]})
-
-        return None
-
-    @staticmethod
-    def update_one(document_id=None, **kwargs):
-        """
-
-        :param document_id:
-        :param kwargs:
-        :return integer:
-        """
-        if document_id and isinstance(document_id, ObjectId):
-            modified_count = 0
-            for key, value in kwargs.items():
-                if key == 'sequence' or key == 'analysis' or key =='has_motif':
-                    modified_count += mongo.db.query.update_one({'_id': document_id},
-                                                                {'$set': {key: value}}, upsert=False).modified_count
-            return modified_count
 
         return None

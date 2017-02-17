@@ -1,17 +1,14 @@
 """
 This contains
 """
-from motif_analyzer import mongo
-from . import celery_tasks
+
+from .models import Sequence
 
 import csv
-import os
-import pathlib
 import re
-from io import StringIO
+from io import StringIO, BytesIO
 
 from Bio import SeqIO
-from bson.objectid import ObjectId
 
 from motif_analyzer import choices
 
@@ -26,236 +23,54 @@ def is_allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in choices.ALLOWED_EXTENSIONS
 
 
-def format_textarea_text_fasta(input_text):
+def insert_fasta_paste(textarea_str, collection_id, user):
     """
-    Convert textarea input text to list of
-    BioPython-parsed sequence dictionaries
-    :param input_text:
+
+    :param textarea_str:
+    :param collection_id:
+    :param user:
     :return:
     """
-    # ensure `input_text` param is string
-    if not isinstance(input_text, str):
-        return False
+    sequences_inserted = 0
+    for record in SeqIO.parse(StringIO(textarea_str), 'fasta'):
+        sequence_id = Sequence.insert_one(
+            collection_id=collection_id,
+            sequence_id=record.id,
+            sequence_name=record.name,
+            sequence_description=record.description,
+            sequence=str(record.seq),
+            user=user
+        )
+        if sequence_id:
+            sequences_inserted += 1
+    return sequences_inserted
 
-    # ensure `input_text` param is not 0 length
-    if len(input_text) == 0:
-        return False
 
-    # parse input
-    fasta_list = Private.fasta_blob_to_list(input_text)
-    return Private.biopython_parse_fasta_list(fasta_list)
-
-
-def format_file_fasta(file_path):
+def insert_fasta_file(file_stream, collection_id, user):
     """
-
-    :param file_path:
+    Converts file stream to StringIO and parses sequence
+    records using BioPython and inserts into MongoDB
+    :param file_stream:
+    :param collection_id:
+    :param user:
     :return:
     """
-    # ensure file exists
-    if not pathlib.Path(file_path).is_file():
-        return False
-
-    return Private.biopython_parse_fasta_file(file_path)
-
-
-def convert_string_ids_to_bson_objectids(string_list):
-    """
-    Converts string ids taken from html to BSON
-    ObjectIds readable by MongoDB
-    :param string_list:
-    :return list:
-    """
-    # ensure `string_list` is list
-    if not isinstance(string_list, list):
-        return False
-
-    # ensure each element of `string_list` is string
-    for string_id in string_list:
-        if not isinstance(string_id, str):
-            return False
-
-    # ensure `string_list` not empty
-    if len(string_list) == 0:
-        return False
-
-    objectid_list = []
-    for string_id in string_list:
-        objectid_list.append(ObjectId(string_id))
-    return objectid_list
-
-
-def write_results_to_csv(query, sequence, analysis_result):
-    """
-
-    :param query:
-    :param sequence:
-    :param analysis_result:
-    :return:
-    """
-
-    # ensure query param is dictionary
-    if not isinstance(query, dict):
-        return False
-
-    # ensure query dict includes `'_id'` key
-    if '_id' not in query:
-        return False
-
-    # ensure `query['_id']` is ObjectId
-    if not isinstance(query['_id'], ObjectId):
-        return False
-
-    # ensures `sequence` param is dictionary
-    if not isinstance(sequence, dict):
-        return False
-
-    # ensures each `sequence` dictionary value is a string
-    for key, value in sequence.items():
-        if not isinstance(value, str):
-            return False
-
-    # ensure `analysis_result` is list
-    if not isinstance(analysis_result, list):
-        return False
-
-    # ensure `analysis_result` contains correct data
-    for result in analysis_result:
-        if 'motif' not in result:
-            return False
-        if not isinstance(result['motif'], str):
-            return False
-        if 'raw_data' not in result:
-            return False
-        if not isinstance(result['raw_data'], list):
-            return False
-        if len(result['raw_data']) > 0:
-            for raw_data_result in result['raw_data']:
-                if 'group' not in raw_data_result:
-                    return False
-                if 'span' not in raw_data_result:
-                    return False
-        if 'motif_data' not in result:
-            return False
-        if not isinstance(result['motif_data'], list):
-            return False
-        if len(result['motif_data']) > 0:
-            for motif_data_hit in result['motif_data']:
-                for motif_data_result in motif_data_hit:
-                    if 'group' not in motif_data_result:
-                        return False
-                    if 'span' not in motif_data_result:
-                        return False
-
-    # parse csv filename from `query_id` string and create file path
-    csv_filename = ''.join([str(query['_id']), '.csv'])
-    csv_file = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', csv_filename)
-
-    # create csv file and populate header if file does not exist
-    if not pathlib.Path(csv_file).is_file():
-        Private.create_csv_file(csv_file)
-
-    # write results to csv file accounting for page reloads
-    with open(csv_file, 'r') as fp:
-        data = fp.readlines()
-        fp.close()
-    if len(data) <= query['sequence_count']:
-        Private.write_to_csv_file(csv_file, query, sequence, analysis_result)
-    return True
-
-
-def motif_analysis(query):
-    """
-    Asynchronous query analysis via Celery
-    :param query:
-    :return:
-    """
-    # query = json.loads(query)
-    # create shorter variables for motif frequency and frame size
-    motif_frequency = int(query['motif_frequency'])
-    motif_frame_size = int(query['motif_frame_size'])
-
-    # create list with motifs
-    motif_list = []
-    for motif_id in query['motif_list']:
-        motif_query = mongo.db.motif.find_one({'_id': motif_id})
-        motif = motif_query['sequence_motif']
-        motif_list.append(motif)
-
-    # create list with collections
-    collection_list = []
-    for collection_id in query['collection_list']:
-        collection_query = mongo.db.collection.find_one({'_id': collection_id})
-        collection = collection_query['collection']
-        collection_list.append(collection)
-
-    # iterate through each sequence in each collection and do analysis
-    # does not add document to CSV or MongoDB if error encountered
-    for collection in collection_list:
-        for sequence in collection:
-            celery_tasks.analyze_sequence(query, sequence, motif_list, motif_frequency, motif_frame_size)
-
-    # update `query` document with `done`
-    mongo.db.query.update({
-        '_id': query['_id']
-    }, {
-        '$set': {
-            'done': True,
-        }
-    })
+    sequences_inserted = 0
+    for record in SeqIO.parse(StringIO(BytesIO(file_stream).read().decode('utf-8')), 'fasta'):
+        sequence_id = Sequence.insert_one(
+            collection_id=collection_id,
+            sequence_id=record.id,
+            sequence_name=record.name,
+            sequence_description=record.description,
+            sequence=str(record.seq),
+            user=user
+        )
+        if sequence_id:
+            sequences_inserted += 1
+    return sequences_inserted
 
 
 class Private(object):
-    @staticmethod
-    def fasta_blob_to_list(fasta_blob):
-        """
-
-        :param fasta_blob:
-        :return:
-        """
-        fasta_list = []
-        for sequence_str in fasta_blob.split('>'):
-            if len(sequence_str) > 0:
-                fasta_list.append(''.join(['>', sequence_str]))
-        return fasta_list
-
-    @staticmethod
-    def biopython_parse_fasta_list(fasta_list):
-        """
-
-        :param fasta_list:
-        :return:
-        """
-        collection_list = []
-        for sequence_str in fasta_list:
-            record = SeqIO.read(StringIO(sequence_str), 'fasta')
-            # print('%s' % record)
-            collection_list.append({
-                'sequence_id': record.id,
-                'sequence_name': record.name,
-                'sequence_description': record.description,
-                'sequence': str(record.seq),
-            })
-        return collection_list
-
-    @staticmethod
-    def biopython_parse_fasta_file(file_path):
-        """
-
-        :param file_path:
-        :return:
-        """
-        collection_list = []
-        with open(file_path, 'r') as fasta_file:
-            for record in SeqIO.parse(fasta_file, 'fasta'):
-                collection_list.append({
-                    'sequence_id': record.id,
-                    'sequence_name': record.name,
-                    'sequence_description': record.description,
-                    'sequence': str(record.seq),
-                })
-        return collection_list
-
     @staticmethod
     def regex_find_iter(motif, sequence_str):
         """

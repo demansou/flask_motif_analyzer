@@ -1,15 +1,12 @@
-from motif_analyzer import app, mongo
+from motif_analyzer import app
 from . import helpers
 from . import choices
+from .celery_tasks import analyze_sequence
 from .models import Collection, Motif, Query, Result, Sequence
 
-from bson import json_util
 from bson.objectid import ObjectId
-from datetime import datetime
 from flask import flash, request, render_template, redirect, send_file
-from werkzeug.utils import secure_filename
 
-import os
 import json
 
 
@@ -44,13 +41,97 @@ def select_sequences():
     # ensure at least one collection selected
     if len(request.form.getlist('collection_list[]')) == 0:
         flash('ERROR! Must select at least one collection to continue')
-        collections = Collection.find(user=request.cookies['user'])
-        return render_template('/sequences/select.html', collections=collections)
+        return redirect(request.url)
 
     # move to motif selection
     response = app.make_response(redirect('/motifs/'))
     response.set_cookie('collection_id_list', ','.join(request.form.getlist('collection_list[]')))
     return response
+
+
+@app.route('/sequences/paste/', methods=['GET', 'POST'])
+def paste_sequences():
+    """
+    Displays sequence file paste form
+    :return:
+    """
+    if request.method == 'GET':
+        return render_template('/sequences/paste.html', allowed_extensions=choices.INPUT_TYPES)
+
+    ###############
+    # POST METHOD #
+    ###############
+
+    # insert collection information into database
+    collection_id = Collection.insert_one(
+        collection_name=request.form['collection_name'],
+        collection_type=request.form['collection_type'],
+        user=request.cookies['user']
+    )
+
+    # ensure collection id is inserted into MongoDB before inserting sequences into MongoDB
+    if not collection_id:
+        flash('ERROR! Error inserting collection data into database! Please try again!')
+        return redirect(request.url)
+
+    # parse sequences with BioPython and insert parsed sequences into MongoDB
+    result = helpers.insert_fasta_paste(request.form['collection_textbox'], collection_id, request.cookies['user'])
+
+    # ensure sequences are inserted into database
+    if result == 0:
+        Collection.delete_one(document_id=collection_id)
+        flash('ERROR! Error inserting collection data into database! Please try again!')
+        return redirect(request.url)
+
+    return redirect('/sequences/')
+
+
+@app.route('/sequences/upload/', methods=['GET', 'POST'])
+def upload_sequences():
+    """
+    displays sequence file upload form
+    :return:
+    """
+    if request.method == 'GET':
+        return render_template('/sequences/upload.html', allowed_extensions=choices.INPUT_TYPES)
+
+    ###############
+    # POST METHOD #
+    ###############
+
+    # ensure file present in request
+    if 'fasta_file' not in request.files:
+        flash('ERROR! File not found in upload form! Please try again!')
+        return redirect(request.url)
+
+    # insert collection information into database
+    collection_id = Collection.insert_one(
+        collection_name=request.form['collection_name'],
+        collection_type=request.form['collection_type'],
+        user=request.cookies['user']
+    )
+
+    # ensure collection id is inserted into MongoDB before inserting sequences into MongoDB
+    if not collection_id:
+        flash('ERROR! Error inserting collection data into database! Please try again!')
+        return redirect(request.url)
+
+    # use request file to parse sequences with BioPython and insert parsed sequences into MongoDB
+    file = request.files['fasta_file']
+    if file and helpers.is_allowed_file(file.filename):
+        result = helpers.insert_fasta_file(file.read(), collection_id, request.cookies['user'])
+
+        # ensure sequences inserted into database
+        if result == 0:
+            Collection.delete_one(document_id=collection_id)
+            flash('ERROR! Error inserting collection sequence data into database! Please try again!')
+            return redirect(request.url)
+
+        return redirect('/sequences/')
+
+    # catchall for file errors
+    flash('ERROR! Error in file or non-permitted file name! Please try again!')
+    return redirect(request.url)
 
 
 @app.route('/motifs/', methods=['GET', 'POST'])
@@ -70,8 +151,7 @@ def select_motifs():
     # ensure at least one motif selected
     if len(request.form.getlist('motif_list[]')) == 0:
         flash('ERROR! Must select at least one motif to continue')
-        motifs = Motif.find(user=request.cookies['user'])
-        return render_template('/motif/select.html', motifs=motifs)
+        return redirect(request.url)
 
     # move to options selection
     response = app.make_response(redirect('/options/'))
@@ -95,7 +175,7 @@ def create_motifs():
     # ensure motif is at least semi-selective
     if len(request.form['motif']) < 3:
         flash('ERROR! Motif must contain at least 3 amino acids!')
-        return render_template('/motif/create.html', amino_acids=choices.AMINOACID_CHOICES)
+        return redirect(request.url)
 
     # redirect to motif selection form if motif already present in database
     if Motif.find(motif=request.form['motif']).count() >= 1:
@@ -108,7 +188,7 @@ def create_motifs():
     # ensure motif is added to database
     if not result:
         flash('ERROR! Error inserting new motif into database! Please try again!')
-        return render_template('/motif/create.html', amino_acids=choices.AMINOACID_CHOICES)
+        return redirect(request.url)
 
     # after successful insertion, return to motif selection form
     return redirect('/motifs/')
@@ -184,8 +264,55 @@ def view_results():
 
     # query MongoDB with each ObjectId for count
     sequence_count = 0
-    for collection_id in request.cookies['collection_id_list'].split(','):
+    for collection_id in result['collection_id_list']:
         sequence_count += Sequence.find(collection_id=ObjectId(collection_id)).count()
 
     return render_template('/results/index.html', motif_str_list=motif_str_list, sequence_count=sequence_count,
                            motif_frequency=result['motif_frequency'], motif_frame_size=result['motif_frame_size'])
+
+
+@app.route('/start_analysis/', methods=['POST'])
+def start_analysis():
+    """
+    Starts analysis results
+    :return:
+    """
+    # ensure query id is stored in cookies
+    if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
+        return json.dumps({'started': False})
+
+    query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
+
+    # ensure query is returned from MongoDB
+    if not query:
+        return json.dumps({'started': False})
+
+    # make list of motifs from query
+    motif_list = []
+    for motif_id in query['motif_id_list']:
+        motif_list.append(Motif.find_one(document_id=ObjectId(motif_id))['motif'])
+
+    # ensure motifs in motif list
+    if len(motif_list) == 0:
+        return json.dumps({'started': False})
+
+    # do analysis for each sequence
+    for collection_id in query['collection_id_list']:
+        sequences = Sequence.find(collection_id=ObjectId(collection_id))
+
+        # ensure sequences are returned
+        if not sequences:
+            return json.dumps({'started': False})
+
+        for sequence in sequences:
+            analyze_sequence(
+                query_id=str(query['_id']),
+                sequence_description=sequence['sequence_description'],
+                sequence=sequence['sequence'],
+                motif_list=motif_list,
+                motif_frequency=query['motif_frequency'],
+                motif_frame_size=query['motif_frame_size'],
+                user=request.cookies['user']
+            )
+
+    return json.dumps({'started': True})

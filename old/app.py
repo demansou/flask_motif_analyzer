@@ -123,7 +123,7 @@ def motif_create():
     :return template:
     """
     if request.method == 'GET':
-        return render_template('/motif/create.html', motif_list=choices.AMINOACID_CHOICES)
+        return render_template('/motif/paste.html', motif_list=choices.AMINOACID_CHOICES)
 
     ###############
     # POST METHOD #
@@ -132,12 +132,12 @@ def motif_create():
     # resend creation form if submitted motif string value length is less than 2
     if len(request.form['motif']) < 2:
         flash('ERROR! Submitted motif not long enough! Please try again!')
-        return render_template('/motif/create.html', motif_list=choices.AMINOACID_CHOICES)
+        return render_template('/motif/paste.html', motif_list=choices.AMINOACID_CHOICES)
 
     # resend creation form if motif already found in MongoDB motif collection
     if mongo.db.motif.find({'sequence_motif': request.form['motif']}).limit(1).count() > 0:
         flash('ERROR! Motif already exists in database!')
-        return render_template('/motif/create.html', motif_list=choices.AMINOACID_CHOICES)
+        return render_template('/motif/paste.html', motif_list=choices.AMINOACID_CHOICES)
 
     # create `motif` document as dict for insertion into MongoDB
     new_motif = {
@@ -206,7 +206,7 @@ def sequences_create():
         return redirect('/form/motif/', code=302)
 
     if request.method == 'GET':
-        return render_template('/sequences/create.html', collection_types=choices.INPUT_TYPES)
+        return render_template('/sequences/paste.html', collection_types=choices.INPUT_TYPES)
 
     ###############
     # POST METHOD #
@@ -230,10 +230,10 @@ def sequences_create():
             return redirect('/sequences/', code=302)
         else:
             flash('ERROR! Error adding sequences to database!')
-            return render_template('/sequences/create.html', collection_types=choices.INPUT_TYPES)
+            return render_template('/sequences/paste.html', collection_types=choices.INPUT_TYPES)
     else:
         flash('ERROR! Invalid collection type!')
-        return render_template('/sequences/create.html', error=error, collection_types=choices.INPUT_TYPES)
+        return render_template('/sequences/paste.html', error=error, collection_types=choices.INPUT_TYPES)
 
 
 @app.route('/sequences/upload/', methods=['GET', 'POST'])
