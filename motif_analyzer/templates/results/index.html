@@ -13,20 +13,22 @@
         <p><strong>Motif Frame Size:</strong> {{ motif_frame_size }} Amino Acids</p>
         <p><strong>Analysis Completed:</strong> <span id="analysis_completed">Not Completed...</span></p>
     </div>
-
-    <div class="top15">
-        <div class="row">
-            <div class="col-xs-12 col-sm-8">
-                <h3>Positive Results</h3>
-                <p class="text-muted">This is a list of sequences analyzed which contain one or more matches for the requested motif analysis. A full list of analysis results is also
-                available for download as a .CSV spreadsheet upon completion of the analysis.</p>
-            </div>
-            <div class="col-xs-12 col-sm-4 top23" id="download_link">
-                <a href="/download_results/" class="btn btn-primary btn-block btn-lg" download>Download Results (.csv)</a>
-            </div>
+    <div class="row">
+        <div class="col-xs-12 top15" id="download_link" style="display:none;">
+            <a href="/download_results/" class="btn btn-primary btn-block btn-lg" download>Download Results (.csv)</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3><span id="num_positive_results"></span> Positive Results</h3>
+            <p class="text-muted">This is a list of sequences analyzed which contain one or more matches for the requested motif analysis. A full list of analysis results is also
+            available for download as a .CSV spreadsheet upon completion of the analysis.</p>
         </div>
 
-
+    </div>
+    <div class="row">
+        <div class="alert alert-danger" id="start_analysis_error" style="display:none;"></div>
+        <div class="alert alert-danger" id="count_results_error" style="display:none;"></div>
     </div>
     <div class="top15" id="results"></div>
 
@@ -34,6 +36,39 @@
 
 {% block script %}
     <script>
-        $.post('/start_analysis/');
+        var interval = null;
+
+        $(document).ready(function () {
+            startAnalysis();
+        });
+
+        function startAnalysis () {
+            $.post('/start_analysis/').done(function (data) {
+                data = JSON.parse(data);
+                if (data.error === true || data.started === false) {
+                    $("#start_analysis_error").text(data.error).show().fadeIn(1000);
+                }
+                else {
+                    interval = setInterval(countResults(), 5000);
+                }
+            });
+        }
+
+        function countResults () {
+            $.post('/count_results/').done(function (data) {
+                data = JSON.parse(data);
+                if (data.error === true || data.started === false) {
+                    $("#count_results_error").text(data.error).show().fadeIn(1000);
+                }
+                else {
+                    clearInterval(interval);
+                    $('#analysis_completed').text('Completed!');
+                }
+            })
+        }
+
+        function getResults () {
+            $.post('/get_results/')
+        }
     </script>
 {% endblock %}

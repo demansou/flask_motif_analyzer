@@ -249,26 +249,26 @@ def view_results():
         flash('ERROR! Query cookie not present! Please start over!')
         return redirect('/')
 
-    result = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
+    query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensures that query id is valid
-    if not result:
+    if not query:
         flash('ERROR! Query not found in database! Please start over!')
         return redirect('/')
 
     # query MongoDB with each ObjectId for motifs
     motif_str_list = []
-    for motif_id in result['motif_id_list']:
+    for motif_id in query['motif_id_list']:
         motif_str_list.append(Motif.find_one(document_id=ObjectId(motif_id))['motif'])
     motif_str_list = ', '.join(motif_str_list)
 
     # query MongoDB with each ObjectId for count
     sequence_count = 0
-    for collection_id in result['collection_id_list']:
+    for collection_id in query['collection_id_list']:
         sequence_count += Sequence.find(collection_id=ObjectId(collection_id)).count()
 
     return render_template('/results/index.html', motif_str_list=motif_str_list, sequence_count=sequence_count,
-                           motif_frequency=result['motif_frequency'], motif_frame_size=result['motif_frame_size'])
+                           motif_frequency=query['motif_frequency'], motif_frame_size=query['motif_frame_size'])
 
 
 @app.route('/start_analysis/', methods=['POST'])
@@ -286,6 +286,9 @@ def start_analysis():
     # ensure query is returned from MongoDB
     if not query:
         return json.dumps({'started': False})
+
+    # clear previous query results for instances such as page reload
+    Result.delete_many(query_id=query['_id'])
 
     # make list of motifs from query
     motif_list = []
@@ -316,3 +319,49 @@ def start_analysis():
             )
 
     return json.dumps({'started': True})
+
+
+@app.route('/count_results/', methods=['POST'])
+def count_results():
+    """
+    Counts completed analysis results
+    :return:
+    """
+    # ensure query id is stored in cookies
+    if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Query id cookie invalid!',
+            'complete': False,
+        })
+
+    query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
+
+    # ensure query is returned from MongoDB
+    if not query:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Query not found in database!',
+            'complete': False,
+        })
+
+    # query MongoDB with each ObjectId for count
+    sequence_count = 0
+    for collection_id in query['collection_id_list']:
+        sequence_count += Sequence.find(collection_id=ObjectId(collection_id)).count()
+
+    # query MongoDB for result count from query
+    result_count = Result.find(query_id=query['_id']).count()
+
+    if result_count < sequence_count:
+        return json.dumps({
+            'error': False,
+            'message': '{0}/{1}' % ([result_count, sequence_count]),
+            'complete': False,
+        })
+
+    return json.dumps({
+        'error': False,
+        'message': '{0}/{1}' % ([result_count, sequence_count]),
+        'complete': True
+    })

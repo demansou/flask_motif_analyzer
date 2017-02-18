@@ -312,10 +312,8 @@ class Result(object):
         :param user:
         :return ObjectId:
         """
-        if query_id and sequence_description and sequence and analysis and has_motif and user\
-                and isinstance(query_id, ObjectId) and isinstance(sequence_description, str)\
-                and isinstance(sequence, str) and isinstance(analysis, list) and isinstance(has_motif, bool)\
-                and isinstance(user, str):
+        if query_id and sequence_description and sequence and analysis and has_motif is True or has_motif is False\
+                and user:
             document = {
                 'query_id': query_id,
                 'sequence_description': sequence_description,
@@ -327,6 +325,7 @@ class Result(object):
             }
             return mongo.db.result.insert_one(document).inserted_id
 
+        print('query_id: %s\nsequence_description: %s\nsequence: %s\nanalysis: %s\nhas_motif: %s\nuser: %s' % (query_id, sequence_description, sequence, analysis, has_motif, user))
         return None
 
     @staticmethod
@@ -379,10 +378,10 @@ class Result(object):
         :return integer:
         """
         if query_id and isinstance(query_id, ObjectId) and not user:
-            return mongo.db.result.delete_many({'collection_id': query_id})
+            return mongo.db.result.delete_many({'query_id': query_id}).deleted_count
         elif user and isinstance(user, str) and not query_id:
-            return mongo.db.result.delete_many({'user': user})
+            return mongo.db.result.delete_many({'user': user}).deleted_count
         elif query_id and user and isinstance(query_id, ObjectId) and isinstance(user, str):
-            return mongo.db.result.delete_many({'$and': [{'query_id': query_id}, {'user': user}]})
+            return mongo.db.result.delete_many({'$and': [{'query_id': query_id}, {'user': user}]}).deleted_count
 
         return None
