@@ -4,6 +4,7 @@ from . import choices
 from .celery_tasks import analyze_sequence
 from .models import Collection, Motif, Query, Result, Sequence
 
+from bson import json_util
 from bson.objectid import ObjectId
 from flask import flash, request, render_template, redirect, send_file
 
@@ -279,13 +280,21 @@ def start_analysis():
     """
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
-        return json.dumps({'started': False})
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Query id cookie invalid!',
+            'started': False,
+        })
 
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensure query is returned from MongoDB
     if not query:
-        return json.dumps({'started': False})
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Query not found in database!',
+            'started': False,
+        })
 
     # clear previous query results for instances such as page reload
     Result.delete_many(query_id=query['_id'])
@@ -297,7 +306,11 @@ def start_analysis():
 
     # ensure motifs in motif list
     if len(motif_list) == 0:
-        return json.dumps({'started': False})
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! No motifs to run analysis with!',
+            'started': False,
+        })
 
     # do analysis for each sequence
     for collection_id in query['collection_id_list']:
@@ -305,7 +318,11 @@ def start_analysis():
 
         # ensure sequences are returned
         if not sequences:
-            return json.dumps({'started': False})
+            return json.dumps({
+                'error': True,
+                'message': 'ERROR! No sequences to run analysis with!',
+                'started': False,
+            })
 
         for sequence in sequences:
             analyze_sequence(
@@ -318,7 +335,11 @@ def start_analysis():
                 user=request.cookies['user']
             )
 
-    return json.dumps({'started': True})
+    return json.dumps({
+        'error': False,
+        'message': 'Analysis started!',
+        'started': True,
+    })
 
 
 @app.route('/count_results/', methods=['POST'])
@@ -365,3 +386,39 @@ def count_results():
         'message': '{0}/{1}' % ([result_count, sequence_count]),
         'complete': True
     })
+
+
+@app.route('/get_results/', methods=['POST'])
+def get_results():
+    """
+    Retrieves results from MongoDB and sends to client
+    :return:
+    """
+    # ensure query id is stored in cookies
+    if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Query id cookie invalid!',
+            'data': []
+        })
+
+    results = Result.find(query_id=ObjectId(request.cookies['query_id']))
+
+    # ensure results are returned from MongoDB
+    if not results:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! No results found in database!',
+            'data': []
+        })
+
+    # create list of results
+    result_list = []
+    for result in results:
+        result_list.append(result)
+
+    return json.dumps({
+        'error': False,
+        'message': '',
+        'data': result_list,
+    }, default=json_util.default)

@@ -349,7 +349,7 @@ class Result(object):
         :return iterator:
         """
         if query_id and isinstance(query_id, ObjectId) and not user:
-            return mongo.db.result.find({'collection_id': query_id})
+            return mongo.db.result.find({'query_id': query_id})
         elif user and isinstance(user, str) and not query_id:
             return mongo.db.result.find({'user': user})
         elif query_id and user and isinstance(query_id, ObjectId) and isinstance(user, str):

@@ -46,7 +46,7 @@
             $.post('/start_analysis/').done(function (data) {
                 data = JSON.parse(data);
                 if (data.error === true || data.started === false) {
-                    $("#start_analysis_error").text(data.error).show().fadeIn(1000);
+                    $("#start_analysis_error").text(data.message).show().fadeIn(1000);
                 }
                 else {
                     interval = setInterval(countResults(), 5000);
@@ -57,18 +57,97 @@
         function countResults () {
             $.post('/count_results/').done(function (data) {
                 data = JSON.parse(data);
-                if (data.error === true || data.started === false) {
-                    $("#count_results_error").text(data.error).show().fadeIn(1000);
+                if (data.error === true) {
+                    $("#count_results_error").text(data.message).show().fadeIn(1000);
                 }
                 else {
                     clearInterval(interval);
                     $('#analysis_completed').text('Completed!');
+                    getResults();
                 }
             })
         }
 
         function getResults () {
-            $.post('/get_results/')
+            $.post('/get_results/').done(function (data) {
+                data = JSON.parse(data);
+                console.log(data);
+                var resultsDataArray = data.data;
+                for (var i = 0; i < resultsDataArray.length; i++) {
+                    var resultHTML = generateHTML(resultsDataArray[i]);
+                    $('#results').append(resultHTML);
+                }
+            })
         }
+
+        function generateHTML (result) {
+            // if no motifs, do not generate HTML
+            if (result.has_motif === false) {
+                return '';
+            }
+
+            var sequenceDescription = result.sequence_description;
+            var sequence = result.sequence;
+            var analysis = result.analysis;
+            var innerTableHTML = generateInnerTableHTML(analysis, sequence);
+            var resultHTML = generateOuterTableHTML(sequenceDescription, innerTableHTML);
+            return resultHTML
+        }
+
+        function analysisResultToString(analysisResultArray) {
+            var analysisResultString = '';
+            for (var i = 0; i < analysisResultArray.length; i++) {
+                analysisResultString += 'Match: ' + analysisResultArray[i].match
+                    + ', Span: [' + analysisResultArray[i].span[0] + ','
+                    + analysisResultArray[i].span[1] + ']\n';
+            }
+            return analysisResultString;
+        }
+
+        function motifStartPos (analysisResultArray) {
+            return analysisResultArray[0].span[0];
+        }
+
+        function motifEndPos (analysisResultArray) {
+            return analysisResultArray[analysisResultArray.length - 1].span[1];
+        }
+
+        function parseAnalysis (analysisKeyValue) {
+            var analysisResultArray = [];
+            for (var i = 0; i < analysisKeyValue.length; i++) {
+                var analysisKeyValueString = analysisResultToString(analysisKeyValue[i]);
+                var subsequenceStart = motifStartPos(analysisKeyValue[i]);
+                var subsequenceEnd = motifEndPos(analysisKeyValue[i]);
+                analysisResultArray.push([analysisKeyValueString, subsequenceStart, subsequenceEnd])
+            }
+            return analysisResultArray;
+        }
+
+        function generateAnalysisHTML (analysis) {
+            for (var i = 0; i < analysis.length; i++) {
+                for(var key in analysis[i]) {
+                    var analysisResultArray = parseAnalysis(analysis[i][key]);
+
+                }
+            }
+        }
+
+        function generateInnerTableHTML (analysis, sequence) {
+            for (var i = 0; i < analysis.length; i++) {
+                for (var key in analysis[i]) {
+
+                    innerTableHTML += "<tr><td>" + key + "</td><td>"
+                        + generateAnalysisHTML(analysis, sequence)
+                }
+            }
+        }
+
+        function generateOuterTableHTML (sequenceDescription, innerTableHTML) {
+            return "<table class=\"table table-bordered table-responsive\">"
+                + "<tr><td><strong>Sequence ID</strong></td><td class=\"is-breakable\">"
+                + sequenceDescription + "</td></tr><tr><td><strong>Motif Matches</strong>"
+                + "</td><td class=\"\">" + innerTableHTML + "</td></tr></table>";
+        }
+
     </script>
 {% endblock %}
