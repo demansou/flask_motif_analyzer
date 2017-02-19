@@ -15,7 +15,7 @@ setup(
         'amqp>=2.1.4',
         'billiard>=3.5.0.2',
         'biopython>=1.68',
-        'celery=4.0.2',
+        'celery>=4.0.2',
         'click>=6.7',
         'itsdangerous>=0.24',
         'kombu>=4.0.2',
