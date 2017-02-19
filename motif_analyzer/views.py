@@ -327,12 +327,14 @@ def start_analysis():
             })
 
         queue_analysis.apply_async(
-            sequences=sequences,
-            query_id=str(query['_id']),
-            motif_list=motif_list,
-            motif_frequency=query['motif_frequency'],
-            motif_frame_size=query['motif_frame_size'],
-            user=request.cookies['user'],
+            kwargs={
+                'sequences': sequences,
+                'query_id': str(query['_id']),
+                'motif_list': motif_list,
+                'motif_frequency': query['motif_frequency'],
+                'motif_frame_size': query['motif_frame_size'],
+                'user': request.cookies['user'],
+            },
             serializer='json',
         )
 
