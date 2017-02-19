@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from motif_analyzer import app
 from . import helpers
 from . import choices
-from .tasks import analyze_sequence
+from .tasks import analyze_sequence, queue_analysis
 from .models import Collection, Motif, Query, Result, Sequence
 
 from bson import json_util
@@ -326,6 +326,15 @@ def start_analysis():
                 'started': False,
             })
 
+        queue_analysis.delay(
+            query_id=str(query['_id']),
+            motif_list=motif_list,
+            motif_frequency=query['motif_frequency'],
+            motif_frame_size=query['motif_frame_size'],
+            user=request.cookies['user']
+        )
+
+        """
         for sequence in sequences:
             analyze_sequence.delay(
                 query_id=str(query['_id']),
@@ -336,6 +345,7 @@ def start_analysis():
                 motif_frame_size=query['motif_frame_size'],
                 user=request.cookies['user']
             )
+        """
 
     return json.dumps({
         'error': False,
@@ -379,13 +389,13 @@ def count_results():
     if result_count < sequence_count:
         return json.dumps({
             'error': False,
-            'message': '%s of $s' % ([result_count, sequence_count]),
+            'message': '{0} of {1}' % ([result_count, sequence_count]),
             'complete': False,
         })
 
     return json.dumps({
         'error': False,
-        'message': '%s of $s' % ([result_count, sequence_count]),
+        'message': '{0} of {1}' % ([result_count, sequence_count]),
         'complete': True
     })
 

@@ -7,6 +7,29 @@ import re
 
 
 @celery.task()
+def queue_analysis(query_id, motif_list, motif_frequency, motif_frame_size, user):
+    """
+
+    :param query_id:
+    :param motif_list:
+    :param motif_frequency:
+    :param motif_frame_size:
+    :param user:
+    :return:
+    """
+    for sequence in sequences:
+        analyze_sequence.delay(
+            query_id=query_id,
+            sequence_description=sequence['sequence_description'],
+            sequence=sequence['sequence'],
+            motif_list=motif_list,
+            motif_frequency=motif_frequency,
+            motif_frame_size=motif_frame_size,
+            user=user
+        )
+
+
+@celery.task()
 def analyze_sequence(query_id, sequence_description, sequence, motif_list, motif_frequency, motif_frame_size, user):
     """
     Analyzes single sequence and inserts
