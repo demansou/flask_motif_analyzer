@@ -5,7 +5,7 @@ from bson import ObjectId
 import re
 
 
-@celery.task(name='app.celery.analyze_sequence')
+@celery.task()
 def analyze_sequence(query_id, sequence_description, sequence, motif_list, motif_frequency, motif_frame_size, user):
     """
     Analyzes single sequence and inserts

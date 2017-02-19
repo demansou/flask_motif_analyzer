@@ -5,6 +5,7 @@ def make_celery(app):
     celery = Celery(
         app.import_name,
         broker=app.config['CELERY_BROKER_URL'],
+        include=['motif_analyzer.tasks']
     )
     celery.conf.update(app.config)
     TaskBase = celery.Task
