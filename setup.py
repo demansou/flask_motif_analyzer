@@ -9,7 +9,6 @@ setup(
     install_requires=[
         'flask',
         'flask_pymongo',
-        'numpy',
         'biopython',
         'celery',
     ],
