@@ -1,4 +1,4 @@
-from motif_analyzer import app
+from motif_analyzer import app, celery
 from . import helpers
 from . import choices
 from .tasks import analyze_sequence
@@ -326,14 +326,17 @@ def start_analysis():
             })
 
         for sequence in sequences:
-            analyze_sequence.delay(
-                str(query['_id']),
-                sequence['sequence_description'],
-                sequence['sequence'],
-                motif_list,
-                query['motif_frequency'],
-                query['motif_frame_size'],
-                request.cookies['user']
+            celery.send_task(
+                "tasks.analyze_sequence",
+                kwargs={
+                    'query_id': str(query['_id']),
+                    'sequence_description': sequence['sequence_description'],
+                    'sequence': sequence['sequence'],
+                    'motif_list': motif_list,
+                    'motif_frequency': query['motif_frequency'],
+                    'motif_frame_size': query['motif_frame_size'],
+                    'user': request.cookies['user']
+                }
             )
 
     return json.dumps({
