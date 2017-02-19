@@ -323,31 +323,6 @@ def start_analysis():
         user=request.cookies['user']
     )
 
-    """
-    # do analysis for each sequence
-    for collection_id in query['collection_id_list']:
-        sequences = Sequence.find(collection_id=ObjectId(collection_id))
-
-        # ensure sequences are returned
-        if not sequences:
-            return json.dumps({
-                'error': True,
-                'message': 'ERROR! No sequences to run analysis with!',
-                'started': False,
-            })
-
-        for sequence in sequences:
-            analyze_sequence.delay(
-                query_id=str(query['_id']),
-                sequence_description=sequence['sequence_description'],
-                sequence=sequence['sequence'],
-                motif_list=motif_list,
-                motif_frequency=query['motif_frequency'],
-                motif_frame_size=query['motif_frame_size'],
-                user=request.cookies['user']
-            )
-        """
-
     return json.dumps({
         'error': False,
         'message': 'Analysis Started!',
