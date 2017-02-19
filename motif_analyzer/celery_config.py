@@ -2,7 +2,7 @@ from celery import Celery
 
 
 def make_celery(app):
-    celery_tasks = ''.join([app.import_name, 'celery_tasks'])
+    celery_tasks = '.'.join([app.import_name, 'celery_tasks'])
     print('%s' % celery_tasks)
     celery = Celery(
         app.import_name,
