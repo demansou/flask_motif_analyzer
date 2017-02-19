@@ -16,13 +16,13 @@ function countResults (interval) {
         if (data.error === true) {
             $("#results_error").text(data.message).show().fadeIn(1000);
         }
-        else {
+        else if (data.complete === false) {
             $("#task_progress").text(data.message);
-            if (data.complete === true) {
-                clearInterval(interval);
-                $('#analysis_completed').text('Completed!');
-                getResults();
-            }
+        }
+        else {
+            clearInterval(interval);
+            $('#analysis_completed').text('Completed!');
+            getResults();
         }
     })
 }
