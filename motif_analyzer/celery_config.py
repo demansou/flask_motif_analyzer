@@ -1,12 +1,13 @@
-from __future__ import absolute_import
 from celery import Celery
 
 
 def make_celery(app):
+    celery_tasks = ''.join([app.import_name, 'celery_tasks'])
+    print('%s' % celery_tasks)
     celery = Celery(
         app.import_name,
         broker=app.config['CELERY_BROKER_URL'],
-        include=['motif_analyzer.celery_tasks']
+        include=[celery_tasks]
     )
     celery.conf.update(app.config)
     TaskBase = celery.Task
