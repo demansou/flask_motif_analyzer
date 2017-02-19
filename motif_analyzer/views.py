@@ -379,13 +379,13 @@ def count_results():
     if result_count < sequence_count:
         return json.dumps({
             'error': False,
-            'message': '{0}/{1}' % ([result_count, sequence_count]),
+            'message': '%s of $s' % ([result_count, sequence_count]),
             'complete': False,
         })
 
     return json.dumps({
         'error': False,
-        'message': '{0}/{1}' % ([result_count, sequence_count]),
+        'message': '%s of $s' % ([result_count, sequence_count]),
         'complete': True
     })
 
