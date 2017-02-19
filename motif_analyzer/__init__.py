@@ -14,7 +14,7 @@ app.config.update(
     MONGO_USERNAME='db_admin',
     MONGO_PASSWORD='dbpass',
     CELERY_BROKER_URL='mongodb://db_admin:dbpass@127.0.0.1:27017/celery',
-    CELERY_IMPORTS='app.analyze_sequence'
+    CELERY_IMPORTS=['motif_analyzer.tasks']
 )
 
 # MongoDB Setup
