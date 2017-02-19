@@ -5,7 +5,6 @@ function startAnalysis (interval) {
             $("#results_error").text(data.message).show().fadeIn(1000);
         }
         else {
-            $("#task_progress").text(data.message);
             interval = setInterval(countResults(interval), 5000);
         }
     });
@@ -16,6 +15,9 @@ function countResults (interval) {
         data = JSON.parse(data);
         if (data.error === true) {
             $("#results_error").text(data.message).show().fadeIn(1000);
+        }
+        else if (data.complete === false) {
+            $("#task_progress").text(data.message);
         }
         else {
             clearInterval(interval);
