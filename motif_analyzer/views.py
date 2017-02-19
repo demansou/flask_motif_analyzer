@@ -327,7 +327,7 @@ def start_analysis():
 
         queue_analysis.apply_async(
             kwargs={
-                'sequences': json.dumps(sequences, default=json_util.default),
+                'sequences': json.dumps(sequences.to_mongo(), default=json_util.default),
                 'query_id': str(query['_id']),
                 'motif_list': motif_list,
                 'motif_frequency': query['motif_frequency'],
@@ -391,13 +391,13 @@ def count_results():
     if result_count < sequence_count:
         return json.dumps({
             'error': False,
-            'message': '{0} of {1}' % ([result_count, sequence_count]),
+            'message': '{0} of {1}'.format(result_count, sequence_count),
             'complete': False,
         })
 
     return json.dumps({
         'error': False,
-        'message': '{0} of {1}' % ([result_count, sequence_count]),
+        'message': '{0} of {1}'.format(result_count, sequence_count),
         'complete': True
     })
 
