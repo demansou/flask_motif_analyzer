@@ -14,11 +14,13 @@ function countResults (interval) {
     $.post('/count_results/').done(function (data) {
         data = JSON.parse(data);
         console.log(data);
-        if (data.error === true) {
-            $("#results_error").text(data.message).show().fadeIn(1000);
-        }
-        else if (data.complete === false) {
-            $("#task_progress").text(data.message);
+        if (data.error === true || data.complete === false) {
+            if (data.error === true) {
+                $("#results_error").text(data.message).show().fadeIn(1000);
+            }
+            else {
+                $("#task_progress").text(data.message);
+            }
         }
         else {
             clearInterval(interval);
