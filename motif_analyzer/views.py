@@ -326,7 +326,7 @@ def start_analysis():
             })
 
         for sequence in sequences:
-            analyze_sequence(
+            analyze_sequence.delay(
                 query_id=str(query['_id']),
                 sequence_description=sequence['sequence_description'],
                 sequence=sequence['sequence'],
