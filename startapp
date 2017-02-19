@@ -1,4 +1,6 @@
 #!/bin/bash
 
-export FLASK_APP=debug.py
+source venv/bin/activate
+celery -A app.celery worker --concurrency=30 --loglevel=INFO &
+export FLASK_APP=aws_run.py
 flask run
