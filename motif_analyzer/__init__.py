@@ -23,6 +23,7 @@ mongo = PyMongo(app, config_prefix='MONGO')
 celery = make_celery(app)
 
 all_tasks = celery.tasks.values()
+all_task_names = celery.tasks.keys()
 print('%s' % all_tasks)
 
 from motif_analyzer import views
