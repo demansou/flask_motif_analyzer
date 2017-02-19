@@ -1,4 +1,4 @@
-var interval;
+var interval = null;
 
 function startAnalysis () {
     $.post('/start_analysis/').done(function (data) {
@@ -23,8 +23,7 @@ function countResults () {
                 $("#task_progress").text(data.message);
             }
         }
-        else {
-            clearInterval(interval);
+        else if (data.complete === true) {
             $("#task_progress").text(data.message);
             $('#analysis_completed').text('Completed!');
             getResults();
@@ -33,6 +32,7 @@ function countResults () {
 }
 
 function getResults () {
+    clearInterval(interval);
     $.post('/get_results/').done(function (data) {
         data = JSON.parse(data);
         var resultsDataArray = data.data;
