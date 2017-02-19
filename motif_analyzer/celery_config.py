@@ -3,7 +3,7 @@ from celery import Celery
 
 def make_celery(app):
     celery_app = Celery(
-        app.import_name,
+        __name__,
         broker=app.config['CELERY_BROKER_URL'],
     )
     celery_app.conf.update(app.config)
