@@ -1,7 +1,7 @@
 from motif_analyzer import app
 from . import helpers
 from . import choices
-from .celery_tasks import analyze_sequence
+from .tasks import analyze_sequence
 from .models import Collection, Motif, Query, Result, Sequence
 
 from bson import json_util
