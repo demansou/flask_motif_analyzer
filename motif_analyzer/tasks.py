@@ -10,6 +10,7 @@ import re
 def queue_analysis(sequences, query_id, motif_list, motif_frequency, motif_frame_size, user):
     """
 
+    :param sequences:
     :param query_id:
     :param motif_list:
     :param motif_frequency:

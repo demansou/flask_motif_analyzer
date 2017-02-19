@@ -335,7 +335,7 @@ def start_analysis():
                 'motif_frame_size': query['motif_frame_size'],
                 'user': request.cookies['user'],
             },
-            serializer='json',
+            serializer='yaml',
         )
 
         """
