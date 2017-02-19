@@ -28,3 +28,5 @@ print('%s' % all_task_names)
 
 from motif_analyzer import views
 from motif_analyzer import tasks
+
+print('%s' % tasks.analyze_sequence.__name__)
