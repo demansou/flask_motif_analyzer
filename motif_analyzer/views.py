@@ -9,6 +9,7 @@ from bson.objectid import ObjectId
 from flask import flash, request, render_template, redirect, send_file
 
 import json
+import os
 
 
 @app.route('/', methods=['GET'])
@@ -412,9 +413,49 @@ def get_results():
             'data': []
         })
 
-    # create list of results
+    # generate csv file name and write header
+    file_path = helpers.create_csv_file(request.cookies['query_id'])
+
+    if not file_path:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Unable to create CSV file!',
+            'data': []
+        })
+
+    # get query data for csv file
+    query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
+
+    if not query:
+        return json.dumps({
+            'error': True,
+            'message': 'ERROR! Unable to retrieve query for CSV data!',
+            'data': []
+        })
+
+    # create list of motifs
+    motif_list = []
+    for motif_id in query['motif_id_list']:
+        motif_list.append(Motif.find_one(document_id=ObjectId(motif_id))['motif'])
+
+    # create list of results and csv file
     result_list = []
     for result in results:
+        write_result = helpers.write_to_csv_file(
+            file_path=file_path,
+            sequence_description=result['sequence_description'],
+            sequence=result['sequence'],
+            motif_list=motif_list,
+            motif_frequency=query['motif_frequency'],
+            motif_frame_size=query['motif_frame_size'],
+            analysis=result['analysis']
+        )
+        if not write_result:
+            return json.dumps({
+                'error': True,
+                'message': 'ERROR! Error writing result to database!',
+                'data': []
+            })
         result_list.append(result)
 
     return json.dumps({
@@ -422,3 +463,10 @@ def get_results():
         'message': '',
         'data': result_list,
     }, default=json_util.default)
+
+
+@app.route('/download_results/', methods=['GET'])
+def get_file():
+    file_name = ''.join([request.cookies.get('query_id'), '.csv'])
+    file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
+    return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')

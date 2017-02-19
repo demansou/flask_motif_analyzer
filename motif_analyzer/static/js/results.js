@@ -2,7 +2,7 @@ function startAnalysis (interval) {
     $.post('/start_analysis/').done(function (data) {
         data = JSON.parse(data);
         if (data.error === true || data.started === false) {
-            $("#start_analysis_error").text(data.message).show().fadeIn(1000);
+            $("#results_error").text(data.message).show().fadeIn(1000);
         }
         else {
             interval = setInterval(countResults(interval), 5000);
@@ -14,7 +14,7 @@ function countResults (interval) {
     $.post('/count_results/').done(function (data) {
         data = JSON.parse(data);
         if (data.error === true) {
-            $("#count_results_error").text(data.message).show().fadeIn(1000);
+            $("#results_error").text(data.message).show().fadeIn(1000);
         }
         else {
             clearInterval(interval);
@@ -28,9 +28,9 @@ function getResults () {
     $.post('/get_results/').done(function (data) {
         data = JSON.parse(data);
         var resultsDataArray = data.data;
+        $("#download_link").show().fadeIn(1000);
         for (var i = 0; i < resultsDataArray.length; i++) {
-            var resultHTML = generateHTML(resultsDataArray[i]);
-            $('#results').append(resultHTML);
+            $('#results').append(generateHTML(resultsDataArray[i]));
         }
     })
 }
@@ -44,7 +44,7 @@ function generateHTML (result) {
     var sequenceDescription = result.sequence_description;
     var sequence = result.sequence;
     var analysis = result.analysis;
-    var innerTableHTML = generateInnerTableHTML(analysis, sequence);
+    var innerTableHTML = generateInnerTableHTML(analysis, sequence, sequenceDescription);
     return generateOuterTableHTML(sequenceDescription, innerTableHTML);
 }
 
@@ -56,36 +56,55 @@ function generateOuterTableHTML (sequenceDescription, innerTableHTML) {
         + innerTableHTML + "</td></tr></table>";
 }
 
-function generateInnerTableHTML (analysis, sequence) {
+function generateInnerTableHTML (analysis, sequence, sequenceDescription) {
     var innerTableHTML = '';
     for (var i = 0; i < analysis.length; i++) {
         for (var key in analysis[i]) {
-            var analysisHTML = generateAnalysisHTML(analysis[i][key], sequence);
+            var analysisHTML = generateAnalysisHTML(analysis[i][key], sequence, sequenceDescription, key);
             innerTableHTML += "<table class=\"table table-bordered table-responsive\">"
-                + "<tr><td><strong>Motif</strong></td><td class=\"is-breakable\">"
-                + key + "</td><td></td></tr>" + analysisHTML + "</table>";
+                + "<tr><td width=\"10%\"><strong>Motif</strong></td><td width=\"70%\" class=\"is-breakable\">"
+                + key + "</td><td width=\"20%\"></td></tr>" + analysisHTML + "</table>";
         }
     }
     return innerTableHTML;
 }
 
-function generateAnalysisHTML (analysisKeyValue, sequence) {
+function generateAnalysisHTML (analysisKeyValue, sequence, sequenceDescription, key) {
     var analysisResultArray = parseAnalysis(analysisKeyValue);
     var analysisHTML = '';
     for (var i = 0; i < analysisResultArray.length; i++) {
         var modalId = randomString(16, "#aA");
-        var modalHTML = generateModalHTML(analysisResultArray[i][1], analysisResultArray[i][2], sequence, modalId);
+        var modalHTML = generateModalHTML(analysisResultArray[i][1], analysisResultArray[i][2], sequence, sequenceDescription, modalId, key);
         analysisHTML += "<tr><td></td><td class=\"is-breakable\">"
             + analysisResultArray[i][0] + "</td><td>"
             + "<button type=\"button\" class=\"btn btn-primary btn-block\" "
-            + "data-toggle=\"modal\" data-target=\"" + modalId + "\">"
+            + "data-toggle=\"modal\" data-target=\"#" + modalId + "\">"
             + "View Motif</button>" + modalHTML + "</td></tr>";
     }
     return analysisHTML;
 }
 
-function generateModalHTML (subsequenceStart, subsequenceEnd, sequence, modalId) {
-    return '';
+function generateModalHTML (subsequenceStart, subsequenceEnd, sequence, sequenceDescription, modalId, key) {
+    var parsedSequence = generateParsedSequence(subsequenceStart, subsequenceEnd, sequence, key);
+    return "<div class=\"modal modal-fullscreen fade\" id=\"" + modalId + "\" "
+        + "role=\"dialog\" aria-hidden=\"true\"><div class=\"modal-dialog\">"
+        + "<div class=\"modal-content\"><div class=\"modal-header\">"
+        + "<button type=\"button\" class=\"close\" data-dismiss=\"modal\">"
+        + "<span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>"
+        + "<h4 class=\"modal-title\">" + sequenceDescription + "</h4>"
+        + "</div><div class=\"modal-body\"><p class=\"is-breakable\">" + parsedSequence + "</p></div>"
+        + "</div></div></div>";
+}
+
+function generateParsedSequence(subsequenceStart, subsequenceEnd, sequence, key) {
+    var sequenceMotif = "<strong><span class=\"motif-string\" id=\"" + key +"\">"
+        + sequence.substring(subsequenceStart, subsequenceEnd) + "</span></strong>";
+    var parsedSequence = [];
+    parsedSequence.push(sequence.substring(0, subsequenceStart));
+    parsedSequence.push(sequenceMotif);
+    parsedSequence.push(sequence.substring(subsequenceEnd, sequence.length));
+    return parsedSequence.join("");
+
 }
 
 function analysisKeyValueToString(analysisKeyValue) {
@@ -128,4 +147,11 @@ function randomString(length, chars) {
         result += mask[Math.floor(Math.random() * mask.length)];
     }
     return result;
+}
+
+function highlightMotifs () {
+    $.initialize(".motif-string", function () {
+        var re = new RegExp($(this).attr('id'));
+        $(this).highlightRegex(re);
+    });
 }
