@@ -24,7 +24,7 @@
                 <label for="collection_type" class="col-xs-3 control-label">Collection Type</label>
                 <div class="col-xs-12 col-sm-9">
                     <select class="form-control" id="collection_type" name="collection_type" required>
-                        {% for value, display in collection_types %}
+                        {% for value, display in allowed_extensions %}
                             <option value="{{ display }}">{{ display }}</option>
                         {% endfor %}
                     </select>

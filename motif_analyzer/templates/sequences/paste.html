@@ -10,12 +10,12 @@
             {{ error }}
         </div>
     {% endif %}
-    <form action="/sequences/create/" class="form-horizontal" method="post">
+    <form action="/sequences/paste/" class="form-horizontal" method="post">
         <fieldset class="form-group">
             <div class="row">
                 <label for="collection_name" class="col-xs-3 control-label">Collection Name</label>
                 <div class="col-xs-12 col-sm-9">
-                    <input type="text" class="form-control" id="collection_name" name="collection_name">
+                    <input type="text" class="form-control" id="collection_name" name="collection_name" required>
                 </div>
             </div>
         </fieldset>
@@ -23,8 +23,8 @@
             <div class="row">
                 <label for="collection_type" class="col-xs-3 control-label">Collection Type</label>
                 <div class="col-xs-12 col-sm-9">
-                    <select class="form-control" id="collection_type" name="collection_type">
-                        {% for value, display in collection_types %}
+                    <select class="form-control" id="collection_type" name="collection_type" required>
+                        {% for value, display in allowed_extensions %}
                             <option value="{{ display }}">{{ display }}</option>
                         {% endfor %}
                     </select>
@@ -35,7 +35,7 @@
             <div class="row">
                 <label for="collection_textbox" class="col-xs-3 control-label">Collection</label>
                 <div class="col-xs-12 col-sm-9">
-                    <textarea class="form-control" id="collection_textbox" name="collection_textbox" rows="10" style="resize: vertical"></textarea>
+                    <textarea class="form-control" id="collection_textbox" name="collection_textbox" rows="10" style="resize: vertical" required></textarea>
                 </div>
             </div>
         </fieldset>
