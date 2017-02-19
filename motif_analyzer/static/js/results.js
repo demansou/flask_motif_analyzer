@@ -13,6 +13,7 @@ function startAnalysis (interval) {
 function countResults (interval) {
     $.post('/count_results/').done(function (data) {
         data = JSON.parse(data);
+        console.log(data);
         if (data.error === true) {
             $("#results_error").text(data.message).show().fadeIn(1000);
         }
