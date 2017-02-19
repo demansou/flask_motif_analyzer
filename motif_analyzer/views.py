@@ -327,7 +327,7 @@ def start_analysis():
 
         for sequence in sequences:
             celery.send_task(
-                "app.motif_analysis",
+                "tasks.analyze_sequence",
                 kwargs={
                     'query_id': str(query['_id']),
                     'sequence_description': sequence['sequence_description'],
