@@ -1,3 +1,5 @@
+var interval;
+
 function startAnalysis (interval) {
     $.post('/start_analysis/').done(function (data) {
         data = JSON.parse(data);
@@ -5,12 +7,12 @@ function startAnalysis (interval) {
             $("#results_error").text(data.message).show().fadeIn(1000);
         }
         else {
-            interval = setInterval(countResults(interval), 5000);
+            interval = setInterval(countResults, 5000);
         }
     });
 }
 
-function countResults (interval) {
+function countResults () {
     $.post('/count_results/').done(function (data) {
         data = JSON.parse(data);
         console.log(data);
