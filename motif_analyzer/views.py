@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from motif_analyzer import app, celery
+from motif_analyzer import app
 from . import helpers
 from . import choices
 from .tasks import analyze_sequence
