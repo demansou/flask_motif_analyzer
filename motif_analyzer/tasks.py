@@ -1,4 +1,4 @@
-from motif_analyzer import celery
+from . import celery
 from .models import Result
 
 from bson import ObjectId
