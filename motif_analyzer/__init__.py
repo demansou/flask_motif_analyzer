@@ -14,7 +14,7 @@ app.config.update(
     MONGO_USERNAME='db_admin',
     MONGO_PASSWORD='dbpass',
     CELERY_BROKER_URL='mongodb://db_admin:dbpass@127.0.0.1:27017/celery',
-    CELERY_IMPORTS=('app.analyze_sequence')
+    CELERY_IMPORTS='app.analyze_sequence'
 )
 
 # MongoDB Setup
@@ -23,11 +23,8 @@ mongo = PyMongo(app, config_prefix='MONGO')
 # Celery Setup
 celery = make_celery(app)
 
-all_task_names = celery.tasks.keys()
-print('%s' % app.import_name)
-print('%s' % all_task_names)
-
 from motif_analyzer import views
 from motif_analyzer import tasks
 
-print('%s' % tasks.analyze_sequence.__name__)
+all_task_names = celery.tasks.keys()
+print('%s' % all_task_names)
