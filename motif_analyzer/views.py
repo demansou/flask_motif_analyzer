@@ -5,8 +5,7 @@ from . import choices
 from .tasks import analyze_sequence, queue_analysis
 from .models import Collection, Motif, Query, Result, Sequence
 
-from bson import json_util
-from bson.objectid import ObjectId
+from bson import json_util, ObjectId
 from flask import flash, request, render_template, redirect, send_file
 
 import json
@@ -328,14 +327,13 @@ def start_analysis():
 
         queue_analysis.apply_async(
             kwargs={
-                'sequences': sequences,
+                'sequences': json.dumps(sequences, default=json_util),
                 'query_id': str(query['_id']),
                 'motif_list': motif_list,
                 'motif_frequency': query['motif_frequency'],
                 'motif_frame_size': query['motif_frame_size'],
                 'user': request.cookies['user'],
-            },
-            serializer='yaml',
+            }
         )
 
         """

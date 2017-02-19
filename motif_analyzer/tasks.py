@@ -3,6 +3,7 @@ from . import celery
 from .models import Result
 
 from bson import ObjectId
+import json
 import re
 
 
@@ -18,6 +19,7 @@ def queue_analysis(sequences, query_id, motif_list, motif_frequency, motif_frame
     :param user:
     :return:
     """
+    sequences = json.loads(sequences)
     for sequence in sequences:
         analyze_sequence.delay(
             query_id=query_id,
