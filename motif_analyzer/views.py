@@ -327,7 +327,7 @@ def start_analysis():
 
         queue_analysis.apply_async(
             kwargs={
-                'sequences': json.dumps(sequences, default=json_util),
+                'sequences': json.dumps(sequences, default=json_util.default),
                 'query_id': str(query['_id']),
                 'motif_list': motif_list,
                 'motif_frequency': query['motif_frequency'],
