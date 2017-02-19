@@ -1,9 +1,8 @@
 from celery import Celery
+from . import celery_tasks
 
 
 def make_celery(app):
-    celery_tasks = '.'.join([app.import_name, 'celery_tasks'])
-    print('%s' % celery_tasks)
     celery_app = Celery(
         app.import_name,
         broker=app.config['CELERY_BROKER_URL'],
