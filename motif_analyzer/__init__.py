@@ -21,7 +21,7 @@ app.config.update(
 mongo = PyMongo(app, config_prefix='MONGO')
 
 # Celery Setup
-celery = make_celery(app)
+celery_app = make_celery(app)
 
 from motif_analyzer import views
 from motif_analyzer import tasks

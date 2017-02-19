@@ -1,12 +1,12 @@
 from __future__ import absolute_import
-from . import celery
+from . import celery_app
 from .models import Result
 
 from bson import ObjectId
 import re
 
 
-@celery.task()
+@celery_app.task(name='motif_analyzer.tasks.analyze_sequence')
 def analyze_sequence(query_id, sequence_description, sequence, motif_list, motif_frequency, motif_frame_size, user):
     """
     Analyzes single sequence and inserts

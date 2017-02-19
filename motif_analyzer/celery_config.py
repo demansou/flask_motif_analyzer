@@ -4,7 +4,7 @@ from celery import Celery
 
 def make_celery(app):
     celery_app = Celery(
-        __name__,
+        app.import_name,
         broker=app.config['CELERY_BROKER_URL'],
         include=['motif_analyzer.tasks.analyze_sequence']
     )
