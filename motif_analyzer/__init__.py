@@ -25,6 +25,7 @@ celery = make_celery(app)
 all_tasks = celery.tasks.values()
 all_task_names = celery.tasks.keys()
 print('%s' % all_tasks)
+print('%s' % all_task_names)
 
 from motif_analyzer import views
 from motif_analyzer import tasks
