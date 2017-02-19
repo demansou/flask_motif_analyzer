@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from motif_analyzer import app
 from . import helpers
 from . import choices
-from .tasks import analyze_sequence, queue_analysis
+from .celery_tasks import analyze_sequence, queue_analysis
 from .models import Collection, Motif, Query, Result, Sequence
 
 from bson import json_util, ObjectId
@@ -279,6 +279,7 @@ def start_analysis():
     Starts analysis results
     :return:
     """
+
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
         return json.dumps({
@@ -313,6 +314,16 @@ def start_analysis():
             'started': False,
         })
 
+    queue_analysis.delay(
+        collection_id_list=query['collection_id_list'],
+        query_id=str(query['_id']),
+        motif_list=motif_list,
+        motif_frequency=query['motif_frequency'],
+        motif_frame_size=query['motif_frame_size'],
+        user=request.cookies['user']
+    )
+
+    """
     # do analysis for each sequence
     for collection_id in query['collection_id_list']:
         sequences = Sequence.find(collection_id=ObjectId(collection_id))
@@ -325,18 +336,6 @@ def start_analysis():
                 'started': False,
             })
 
-        queue_analysis.apply_async(
-            kwargs={
-                'sequences': json.dumps(sequences.to_mongo(), default=json_util.default),
-                'query_id': str(query['_id']),
-                'motif_list': motif_list,
-                'motif_frequency': query['motif_frequency'],
-                'motif_frame_size': query['motif_frame_size'],
-                'user': request.cookies['user'],
-            }
-        )
-
-        """
         for sequence in sequences:
             analyze_sequence.delay(
                 query_id=str(query['_id']),
@@ -351,7 +350,7 @@ def start_analysis():
 
     return json.dumps({
         'error': False,
-        'message': 'Analysis started!',
+        'message': 'Analysis Started!',
         'started': True,
     })
 

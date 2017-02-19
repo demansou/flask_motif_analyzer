@@ -24,4 +24,4 @@ mongo = PyMongo(app, config_prefix='MONGO')
 celery = make_celery(app)
 
 from motif_analyzer import views
-from motif_analyzer import tasks
+from motif_analyzer import celery_tasks

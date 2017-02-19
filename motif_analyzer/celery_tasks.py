@@ -1,17 +1,16 @@
 from __future__ import absolute_import
 from . import celery
-from .models import Result
+from .models import Result, Sequence
 
 from bson import ObjectId
-import json
 import re
 
 
 @celery.task()
-def queue_analysis(sequences, query_id, motif_list, motif_frequency, motif_frame_size, user):
+def queue_analysis(collection_id_list, query_id, motif_list, motif_frequency, motif_frame_size, user):
     """
 
-    :param sequences:
+    :param collection_id_list:
     :param query_id:
     :param motif_list:
     :param motif_frequency:
@@ -19,17 +18,19 @@ def queue_analysis(sequences, query_id, motif_list, motif_frequency, motif_frame
     :param user:
     :return:
     """
-    sequences = json.loads(sequences)
-    for sequence in sequences:
-        analyze_sequence.delay(
-            query_id=query_id,
-            sequence_description=sequence['sequence_description'],
-            sequence=sequence['sequence'],
-            motif_list=motif_list,
-            motif_frequency=motif_frequency,
-            motif_frame_size=motif_frame_size,
-            user=user
-        )
+    for collection_id in collection_id_list:
+        sequences = Sequence.find(collection_id=ObjectId(collection_id))
+
+        for sequence in sequences:
+            analyze_sequence.delay(
+                query_id=query_id,
+                sequence_description=sequence['sequence_description'],
+                sequence=sequence['sequence'],
+                motif_list=motif_list,
+                motif_frequency=motif_frequency,
+                motif_frame_size=motif_frame_size,
+                user=user
+            )
 
 
 @celery.task()
