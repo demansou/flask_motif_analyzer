@@ -26,6 +26,7 @@ function countResults () {
         }
         else {
             clearInterval(interval);
+            $("#task_progress").text(data.message);
             $('#analysis_completed').text('Completed!');
             getResults();
         }
