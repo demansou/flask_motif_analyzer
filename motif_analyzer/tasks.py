@@ -7,7 +7,7 @@ import re
 
 
 @celery.task()
-def queue_analysis(query_id, motif_list, motif_frequency, motif_frame_size, user):
+def queue_analysis(sequences, query_id, motif_list, motif_frequency, motif_frame_size, user):
     """
 
     :param query_id:
