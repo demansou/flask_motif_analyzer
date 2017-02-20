@@ -34,7 +34,7 @@ function countResults () {
 
 function getResults () {
     $.post('/get_results/').done(function (data) {
-        data = JSON.parse(data)
+        data = JSON.parse(data);
         console.log(data);
         if (data.redirect){
             document.location.href = data.redirect;
