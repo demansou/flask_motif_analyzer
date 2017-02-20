@@ -283,14 +283,14 @@ def start_analysis():
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
         flash('ERROR! Query id invalid. Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensure query is returned from MongoDB
     if not query:
         flash('ERROR! Query not found in database!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     # clear previous query results for instances such as page reload
     Result.delete_many(query_id=query['_id'])
@@ -303,7 +303,7 @@ def start_analysis():
     # ensure motifs in motif list
     if len(motif_list) == 0:
         flash('ERROR! No motifs to run analysis with!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     queue_analysis.delay(
         collection_id_list=query['collection_id_list'],
@@ -326,14 +326,14 @@ def count_results():
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
         flash('ERROR! Query id invalid. Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensure query is returned from MongoDB
     if not query:
         flash('ERROR! No query data found in database! Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     # query MongoDB with each ObjectId for count
     sequence_count = 0
@@ -364,28 +364,28 @@ def get_results():
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
         flash('ERROR! Query id invalid. Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     results = Result.find(query_id=ObjectId(request.cookies['query_id']))
 
     # ensure results are returned from MongoDB
     if not results:
         flash('ERROR! No results found in database! Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     # generate csv file name and write header
     file_path = helpers.create_csv_file(request.cookies['query_id'])
 
     if not file_path:
         flash('ERROR! CSV File not created! Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     # get query data for csv file
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     if not query:
         flash('ERROR! Unabled to retrieve data for CSV file! Please try again!')
-        return redirect('/', code=307)
+        return redirect('/', code=302)
 
     # create list of motifs
     motif_list = []
@@ -406,7 +406,7 @@ def get_results():
         )
         if not write_result:
             flash('ERROR! Error writing results to database! Please try again!')
-            return redirect('/', code=307)
+            return redirect('/', code=302)
 
         result_list.append(result)
 
