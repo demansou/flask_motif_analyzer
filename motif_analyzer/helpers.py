@@ -100,7 +100,6 @@ def create_csv_file(query_id):
             csv_writer.writerow(row)
             return file_path
     except (FileNotFoundError, PermissionError) as e:
-        print('%s' % e)
         return None
 
 
@@ -131,6 +130,6 @@ def write_to_csv_file(file_path, sequence_description, sequence, motif_list, mot
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(row)
         return True
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError) as e:
         return None
 
