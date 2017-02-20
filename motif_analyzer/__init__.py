@@ -11,9 +11,7 @@ app.config.update(
     STATIC_FOLDER=os.path.join(os.getcwd(), 'static'),
     UPLOAD_FOLDER=os.path.join(os.getcwd(), 'uploads'),
     SECRET_KEY='ProjectSecretKey1337',
-    MONGO_DBNAME=app.name,
-    MONGO_USERNAME='db_admin',
-    MONGO_PASSWORD='dbpass',
+    MONGO_URI='mongodb://db_admin:dbpass@127.0.0.1:27017/motif_analyzer',
     CELERY_BROKER_URL='mongodb://db_admin:dbpass@127.0.0.1:27017/celery'
 )
 
