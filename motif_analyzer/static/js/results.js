@@ -2,37 +2,45 @@ var interval = null;
 
 function startAnalysis () {
     $.post('/start_analysis/').done(function (data) {
+        data = JSON.parse(data);
         console.log(data);
-        if (data) {
-            data = JSON.parse(data);
-            if (data === true) {
-                interval = setInterval(countResults, 5000);
-            }
+        if (data.redirect) {
+            document.location.href = data.redirect;
+        }
+        else {
+            interval = setInterval(countResults, 5000);
         }
     });
 }
 
 function countResults () {
     $.post('/count_results/').done(function (data) {
+        data = JSON.parse(data);
         console.log(data);
-        if (data) {
-            data = JSON.parse(data);
+        if (data.redirect) {
+            document.location.href = data.redirect;
+        }
+        else if (!data.complete) {
             $("#task_progress").text(data.message);
-            if (data.complete) {
-                $('#analysis_completed').text('Completed!');
-                clearInterval(interval);
-                getResults();
-            }
+        }
+        else {
+            $("#task_progress").text(data.message);
+            $('#analysis_completed').text('Completed!');
+            clearInterval(interval);
+            getResults();
         }
     })
 }
 
 function getResults () {
     $.post('/get_results/').done(function (data) {
+        data = JSON.parse(data)
         console.log(data);
-        if (data){
-            data = JSON.parse(data);
-            var resultsDataArray = data;
+        if (data.redirect){
+            document.location.href = data.redirect;
+        }
+        else {
+            var resultsDataArray = data.data;
             $("#download_link").show().fadeIn(1000);
             for (var i = 0; i < resultsDataArray.length; i++) {
                 $('#results').append(generateHTML(resultsDataArray[i]));
