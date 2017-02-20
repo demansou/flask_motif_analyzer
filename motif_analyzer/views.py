@@ -282,21 +282,15 @@ def start_analysis():
 
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Query id cookie invalid!',
-            'started': False,
-        })
+        flash('ERROR! Query id invalid. Please try again!')
+        return redirect('/')
 
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensure query is returned from MongoDB
     if not query:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Query not found in database!',
-            'started': False,
-        })
+        flash('ERROR! Query not found in database!')
+        return redirect('/')
 
     # clear previous query results for instances such as page reload
     Result.delete_many(query_id=query['_id'])
@@ -308,11 +302,8 @@ def start_analysis():
 
     # ensure motifs in motif list
     if len(motif_list) == 0:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! No motifs to run analysis with!',
-            'started': False,
-        })
+        flash('ERROR! No motifs to run analysis with!')
+        return redirect('/')
 
     queue_analysis.delay(
         collection_id_list=query['collection_id_list'],
@@ -323,11 +314,7 @@ def start_analysis():
         user=request.cookies['user']
     )
 
-    return json.dumps({
-        'error': False,
-        'message': 'Analysis Started!',
-        'started': True,
-    })
+    return json.dumps(True)
 
 
 @app.route('/count_results/', methods=['POST'])
