@@ -384,41 +384,29 @@ def get_results():
     """
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Query id cookie invalid!',
-            'data': []
-        })
+        flash('ERROR! Query id invalid. Please try again!')
+        return redirect('/')
 
     results = Result.find(query_id=ObjectId(request.cookies['query_id']))
 
     # ensure results are returned from MongoDB
     if not results:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! No results found in database!',
-            'data': []
-        })
+        flash('ERROR! No results found in database! Please try again!')
+        return redirect('/')
 
     # generate csv file name and write header
     file_path = helpers.create_csv_file(request.cookies['query_id'])
 
     if not file_path:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Unable to create CSV file!',
-            'data': []
-        })
+        flash('ERROR! CSV File not created! Please try again!')
+        return redirect('/')
 
     # get query data for csv file
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     if not query:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Unable to retrieve query for CSV data!',
-            'data': []
-        })
+        flash('ERROR! Unabled to retrieve data for CSV file! Please try again!')
+        return redirect('/')
 
     # create list of motifs
     motif_list = []
@@ -438,11 +426,8 @@ def get_results():
             analysis=result['analysis']
         )
         if not write_result:
-            return json.dumps({
-                'error': True,
-                'message': 'ERROR! Error writing result to database!',
-                'data': []
-            })
+            flash('ERROR! Error writing results to database! Please try again!')
+            return redirect('/')
         result_list.append(result)
 
     return json.dumps({

@@ -99,7 +99,8 @@ def create_csv_file(query_id):
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(row)
             return file_path
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError) as e:
+        print('%s' % e)
         return None
 
 
