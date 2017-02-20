@@ -338,21 +338,15 @@ def count_results():
     """
     # ensure query id is stored in cookies
     if not request.cookies['query_id'] or len(request.cookies['query_id']) == 0:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Query id cookie invalid!',
-            'complete': False,
-        })
+        flash('ERROR! Query id invalid. Please try again!')
+        return redirect('/')
 
     query = Query.find_one(document_id=ObjectId(request.cookies['query_id']))
 
     # ensure query is returned from MongoDB
     if not query:
-        return json.dumps({
-            'error': True,
-            'message': 'ERROR! Query not found in database!',
-            'complete': False,
-        })
+        flash('ERROR! No query data found in database! Please try again!')
+        return redirect('/')
 
     # query MongoDB with each ObjectId for count
     sequence_count = 0
@@ -364,13 +358,11 @@ def count_results():
 
     if result_count < sequence_count:
         return json.dumps({
-            'error': False,
             'message': '{0} of {1}'.format(result_count, sequence_count),
             'complete': False,
         })
 
     return json.dumps({
-        'error': False,
         'message': '{0} of {1}'.format(result_count, sequence_count),
         'complete': True
     })
@@ -430,11 +422,7 @@ def get_results():
             return redirect('/')
         result_list.append(result)
 
-    return json.dumps({
-        'error': False,
-        'message': '',
-        'data': result_list,
-    }, default=json_util.default)
+    return json.dumps(result_list, default=json_util.default)
 
 
 @app.route('/download_results/', methods=['GET'])

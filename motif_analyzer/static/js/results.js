@@ -2,43 +2,41 @@ var interval = null;
 
 function startAnalysis () {
     $.post('/start_analysis/').done(function (data) {
-        data = JSON.parse(data);
-        if (data.error === true || data.started === false) {
-            $("#results_error").text(data.message).show().fadeIn(1000);
-        }
-        else {
-            interval = setInterval(countResults, 5000);
+        console.log(data);
+        if (data) {
+            data = JSON.parse(data);
+            if (data === true) {
+                interval = setInterval(countResults, 5000);
+            }
         }
     });
 }
 
 function countResults () {
     $.post('/count_results/').done(function (data) {
-        data = JSON.parse(data);
-        if (data.error === true || data.complete === false) {
-            if (data.error === true) {
-                $("#results_error").text(data.message).show().fadeIn(1000);
-            }
-            else {
-                $("#task_progress").text(data.message);
-            }
-        }
-        else if (data.complete === true) {
+        console.log(data);
+        if (data) {
+            data = JSON.parse(data);
             $("#task_progress").text(data.message);
-            $('#analysis_completed').text('Completed!');
-            getResults();
+            if (data.complete) {
+                $('#analysis_completed').text('Completed!');
+                clearInterval(interval);
+                getResults();
+            }
         }
     })
 }
 
 function getResults () {
-    clearInterval(interval);
     $.post('/get_results/').done(function (data) {
-        data = JSON.parse(data);
-        var resultsDataArray = data.data;
-        $("#download_link").show().fadeIn(1000);
-        for (var i = 0; i < resultsDataArray.length; i++) {
-            $('#results').append(generateHTML(resultsDataArray[i]));
+        console.log(data);
+        if (data){
+            data = JSON.parse(data);
+            var resultsDataArray = data;
+            $("#download_link").show().fadeIn(1000);
+            for (var i = 0; i < resultsDataArray.length; i++) {
+                $('#results').append(generateHTML(resultsDataArray[i]));
+            }
         }
     })
 }
