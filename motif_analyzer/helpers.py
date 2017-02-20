@@ -80,7 +80,7 @@ def create_csv_file(query_id):
     """
     here = os.path.dirname(__file__)
     file_name = ''.join([query_id, '.csv'])
-    file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
+    file_path = os.path.join(here, 'motif_analyzer', 'downloads', file_name)
 
     if pathlib.Path(file_path).is_file():
         os.remove(file_path)
