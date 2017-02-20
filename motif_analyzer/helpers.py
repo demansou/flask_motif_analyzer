@@ -75,9 +75,16 @@ def insert_fasta_file(file_stream, collection_id, user):
 def create_csv_file(query_id):
     """
     Takes file path and creates csv file with header row
-    :param file_path:
+    :param query_id:
     :return:
     """
+    file_name = ''.join([query_id, '.csv'])
+    file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
+    print('{0}'.format(file_path))
+
+    if pathlib.Path(file_path).is_file():
+        os.remove(file_path)
+
     row = [
         'Sequence Description',
         'Sequence',
@@ -86,21 +93,14 @@ def create_csv_file(query_id):
         'Motif Frame Size',
         'Analysis Results',
     ]
-    file_name = ''.join([query_id, '.csv'])
-    file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
 
-    if pathlib.Path(file_path).is_file():
-        os.remove(file_path)
-
-    with open(file_path, 'w', newline='') as csv_file:
-
-        if not pathlib.Path(file_path).is_file():
-            return None
-
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(row)
-
-    return file_path
+    try:
+        with open(file_path, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(row)
+            return file_path
+    except FileNotFoundError:
+        return None
 
 
 def write_to_csv_file(file_path, sequence_description, sequence, motif_list, motif_frequency, motif_frame_size,
@@ -116,9 +116,6 @@ def write_to_csv_file(file_path, sequence_description, sequence, motif_list, mot
     :param analysis:
     :return:
     """
-    if not pathlib.Path(file_path).is_file():
-        return None
-
     row = [
         sequence_description,
         sequence,
@@ -128,9 +125,11 @@ def write_to_csv_file(file_path, sequence_description, sequence, motif_list, mot
         analysis,
     ]
 
-    with open(file_path, 'a', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(row)
-
-    return True
+    try:
+        with open(file_path, 'a', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(row)
+        return True
+    except FileNotFoundError:
+        return None
 
