@@ -13,9 +13,7 @@ function startAnalysis () {
 }
 
 function countResults () {
-    $.post('/count_results/').error(function () {
-
-    }).done(function (data) {
+    $.post('/count_results/').done(function (data) {
         console.log(data);
         if (data) {
             data = JSON.parse(data);
