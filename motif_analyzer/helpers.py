@@ -78,6 +78,7 @@ def create_csv_file(query_id):
     :param query_id:
     :return:
     """
+    here = os.path.dirname(__file__)
     file_name = ''.join([query_id, '.csv'])
     file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
 
@@ -100,7 +101,8 @@ def create_csv_file(query_id):
             return file_path
     except (FileNotFoundError, PermissionError) as e:
         print('{0}'.format(e))
-        print('{0}'.format(file_path))
+        print('here: {0}'.format(here))
+        print('file path: {0}'.format(file_path))
         return None
 
 
@@ -117,6 +119,9 @@ def write_to_csv_file(file_path, sequence_description, sequence, motif_list, mot
     :param analysis:
     :return:
     """
+
+    here = os.path.dirname(__file__)
+
     row = [
         sequence_description,
         sequence,
@@ -133,6 +138,7 @@ def write_to_csv_file(file_path, sequence_description, sequence, motif_list, mot
         return True
     except (FileNotFoundError, PermissionError) as e:
         print('{0}'.format(e))
+        print('here: {0}'.format(here))
         print('{0}'.format(file_path))
         return None
 
