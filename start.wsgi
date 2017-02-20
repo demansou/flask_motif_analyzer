@@ -5,7 +5,8 @@ with open(activate_this) as file_:
 import sys
 sys.stdout = sys.stderr
 
-import os os.environ['PYTHON_EGG_CACHE'] = '~/tmp/python-eggs'
+import os
+os.environ['PYTHON_EGG_CACHE'] = '~/tmp/python-eggs'
 
 from motif_analyzer import app
 
