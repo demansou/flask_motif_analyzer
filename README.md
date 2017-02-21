@@ -133,7 +133,6 @@ At this point, you should still be in your Python virtual environment. If not, r
 --------------------------------------------------------------------
 If you noticed in the Apache2 config file, the directory link to `flask_motif_analyzer` was `/var/www`. This is the default location of Apache's web server and it's good to follow the config. However, we're going to make it simple and maintain the default user/group settings for our file now.  
 `sudo ln -s /home/ubuntu/flask_motif_analyzer /var/www`  
-*If you want more security, go ahead and move the directory over. It's fairly easy to do so.*  
 
 # more to come...
 12. MongoDB setup
