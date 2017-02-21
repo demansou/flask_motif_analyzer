@@ -89,5 +89,6 @@ At this point, you should still be in your Python virtual environment. If not, r
 **2. Get needed info**  
 `sudo mod_wsgi-express install-module`  
 > LoadModule wsgi_module "/usr/lib/apache2/modules/mod_wsgi-py35.cpython-35m-x86_64-linux-gnu.so"  
-> WSGIPythonHome "/usr/local"  
-more to come...
+> WSGIPythonHome "/usr/local" 
+
+# more to come...
