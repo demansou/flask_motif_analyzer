@@ -450,6 +450,7 @@ def get_results():
 
 @app.route('/download_results/', methods=['GET'])
 def get_file():
+    here = os.path.dirname(__file__)
     file_name = ''.join([request.cookies.get('query_id'), '.csv'])
-    file_path = os.path.join(os.getcwd(), 'motif_analyzer', 'downloads', file_name)
+    file_path = os.path.join(here, 'downloads', file_name)
     return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')
