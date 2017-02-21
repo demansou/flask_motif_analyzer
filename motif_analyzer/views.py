@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from motif_analyzer import app
 from . import helpers
 from . import choices
