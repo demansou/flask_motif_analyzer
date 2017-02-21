@@ -8,8 +8,8 @@ Requirements
 ============
 
   1. Linux (Tested w/ Ubuntu 16.04 LTS)
-  2. Git
-  3. Python 3.5.2
+  2. Python 3.5.2
+  3. Git
   4. Apache2
   5. mod_wsgi
   6. MongoDB
@@ -18,6 +18,9 @@ Requirements
  
 Installation Documentation
 ==========================
+## This following documentation is for a clean install of `flask_motif_analyzer` using a fresh Amazon AWS Ubuntu 16.04 LTS Virtual Server.  
+*Note that `flask_motif_analyzer` has a Python module name of `motif_analyzer`.*  
+*If you already have a partial installation or use a different WSGI server, please feel free to skip those parts!*  
 
 1. Server
 ---------
@@ -69,8 +72,8 @@ Install a virtual environment in the `flask_motif_analyzer` base directory. You 
 **3. Upgrade pip**  
 `pip install --upgrade pip`  
 
-7. Install package requirements
--------------------------------
+7. Install `flask_motif_analyzer` package requirements
+------------------------------------------------------
 Use pip to install `flask_motif_analyzer` requirements. Ensure that the virtual environment is activated.  
 `cd ~/flask_motif_analyzer && pip install -r requirements.txt`  
 
@@ -79,10 +82,12 @@ At this point, the server can run locally using `aws_debug.py`. However, this pr
 8. Install Apache2
 ------------------
 Apache2 comes preinstalled with Ubuntu as a service. It can be controlled using `sudo service apache2 start|stop|restart`. However, the default Apache2 does not come preinstalled with `mod_wsgi` which is needed for Python web applications. Therefore, we must install a standalone version of Apache2 for this next step. To be clear, we will be using the Apache2 service in the end, but this is a needed, if troublesome, part of the process.  
+**Default Apache2 Service:** `/etc/apache2`  
+**Apache2 Installed Package:** `/usr/lib/apache2`  
 `sudo apt-get update && sudo apt-get install apache2 apache2-dev`
 
 9. Install and configure `mod_wsgi`
----------------------
+-----------------------------------
 *Full documentation can be found at https://pypi.python.org/pypi/mod_wsgi*  
 At this point, you should still be in your Python virtual environment. If not, repeat step 6 before continuing.  
 **1. Install `mod_wsgi`**  
@@ -90,6 +95,38 @@ At this point, you should still be in your Python virtual environment. If not, r
 **2. Get needed info**  
 `sudo mod_wsgi-express install-module`  
 > LoadModule wsgi_module "/usr/lib/apache2/modules/mod_wsgi-py35.cpython-35m-x86_64-linux-gnu.so"  
-> WSGIPythonHome "/home/ubuntu/flask_motif_analyzer/venv/bin/python" 
+> WSGIPythonHome "/home/ubuntu/flask_motif_analyzer/venv/bin/python"  
+
+**3. Create backup of and append `/etc/apache2/apache2.conf` config file**  
+`sudo cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.old && sudo echo "LoadModule wsgi_module \"/usr/lib/apache2/modules/mod_wsgi-py35.cpython-35m-x86_64-linux-gnu.so\"" | sudo tee -a /etc/apache2/apache2.conf && sudo echo "WSGIPythonHome \"/home/ubuntu/flask_motif_analyzer/venv/bin/python\"" | sudo tee -a /etc/apache2/apache2.conf`  
+*We'll restart Apache2 to enable the config updates after the next step*
+
+10. Create Apache2 site config file
+-----------------------------------
+**1. Create config file to write to**  
+`cd ~ && vim flask_motif_analyzer.conf`  
+**2. Copy config text to open vim editor file (insert text with `:i`, escape from insertion mode with escape key, save with `:wq`)**  
+```
+<VirtualHost *:80>
+        WSGIDaemonProcess flask_motif_analyzer threads=5 user=ubuntu group=ubuntu
+        WSGIScriptAlias / /var/www/flask_motif_analyzer/motif_analyzer.wsgi
+
+        <directory /var/www/flask_motif_analyzer>
+                WSGIProcessGroup flask_motif_analyzer
+                WSGIApplicationGroup %{GLOBAL}
+                WSGIScriptReloading On
+                Require all granted
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+        LogLevel info
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+</VirtualHost>
+```  
+**3. Create symlink with saved config file**  
+`sudo ln -s /home/ubuntu/flask_motif_analyzer.conf /etc/apache2/sites-available`  
+**4. Enable site with `a2ensite`**  
+`cd /etc/apache2/sites-available && sudo a2ensite flask_motif_analyzer.conf && sudo service apache2 restart`
 
 # more to come...
