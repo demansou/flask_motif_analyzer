@@ -78,6 +78,7 @@ At this point, the server can run locally using `aws_debug.py`. However, this pr
 
 8. Install Apache2
 ------------------
+Apache2 comes preinstalled with Ubuntu as a service. It can be controlled using `sudo service apache2 start|stop|restart`. However, the default Apache2 does not come preinstalled with `mod_wsgi` which is needed for Python web applications. Therefore, we must install a standalone version of Apache2 for this next step. To be clear, we will be using the Apache2 service in the end, but this is a needed, if troublesome, part of the process.  
 `sudo apt-get update && sudo apt-get install apache2 apache2-dev`
 
 9. Install and configure `mod_wsgi`
@@ -89,6 +90,6 @@ At this point, you should still be in your Python virtual environment. If not, r
 **2. Get needed info**  
 `sudo mod_wsgi-express install-module`  
 > LoadModule wsgi_module "/usr/lib/apache2/modules/mod_wsgi-py35.cpython-35m-x86_64-linux-gnu.so"  
-> WSGIPythonHome "/usr/local" 
+> WSGIPythonHome "/home/ubuntu/flask_motif_analyzer/venv/bin/python" 
 
 # more to come...
