@@ -1,5 +1,4 @@
-from __future__ import absolute_import
-from . import celery
+from motif_analyzer import celery
 from .models import Result, Sequence
 
 from bson import ObjectId
