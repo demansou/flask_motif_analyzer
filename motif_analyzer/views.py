@@ -442,6 +442,9 @@ def get_results():
             })
         result_list.append(result)
 
+    # delete results from database after moving to list to save hdd space
+    Result.delete_many(query_id=ObjectId(request.cookies.get('query_id')))
+
     return json.dumps({
         'redirect': None,
         'data': result_list,
@@ -453,4 +456,5 @@ def get_file():
     here = os.path.dirname(__file__)
     file_name = ''.join([request.cookies.get('query_id'), '.csv'])
     file_path = os.path.join(here, 'downloads', file_name)
+
     return send_file(file_path, attachment_filename=file_name, as_attachment=True, mimetype='text/csv')
