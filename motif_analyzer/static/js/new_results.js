@@ -32,7 +32,7 @@ function startAnalysis () {
             document.location.href = data.redirect;
         }
         else {
-            interval = setInterval(countResults, 1000);
+            interval = setInterval(countResults, 2500);
         }
     });
 }
