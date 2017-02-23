@@ -100,16 +100,16 @@ function displayPrevResults (htmlResults) {
 }
 
 function increaseIndexes() {
-    $("#startIndex").val($("#startIndex").val() + 50);
+    $("#startIndex").val(parseInt($("#startIndex").val()) + 50);
     console.log($("#startIndex").val());
-    $("#endIndex").val($("#endIndex").val() + 50);
+    $("#endIndex").val(parseInt($("#endIndex").val()) + 50);
     console.log($("#endIndex").val());
 }
 
 function decreaseIndexes() {
-    $("#startIndex").val($("#startIndex").val() - 50);
+    $("#startIndex").val(parseInt($("#startIndex").val()) - 50);
     console.log($("#startIndex").val());
-    $("#endIndex").val($("#endIndex").val() - 50);
+    $("#endIndex").val($(parseInt("#endIndex").val()) - 50);
     console.log($("#endIndex").val());
 }
 
