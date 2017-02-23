@@ -314,7 +314,7 @@ class Result(object):
         :param user:
         :return ObjectId:
         """
-        if query_id and sequence_description and sequence and analysis and html \
+        if query_id and sequence_description and sequence and analysis and html_text \
                 and has_motif is True or has_motif is False and user:
             document = {
                 'query_id': query_id,
