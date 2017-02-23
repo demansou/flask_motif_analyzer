@@ -11,7 +11,6 @@ $(document).ready(function () {
 
 var interval = null;
 var resultsBuffer = null;
-var startIndex = 0, endIndex = 0;
 
 function startAnalysis () {
     $.post('/start_analysis/').done(function (data) {
@@ -55,7 +54,7 @@ function getResults () {
         else {
             $("#download_link").show().fadeIn(1000);
             if (data.data.length > 0) {
-                console.log('should append data');
+                //console.log('should append data');
                 console.log(data.data);
                 resultsBuffer = displayResultsStart(data.data);
             }
@@ -64,7 +63,7 @@ function getResults () {
 }
 
 function displayResultsStart (htmlResults) {
-    console.log('begins display results')
+
     var limit = endIndex;
     if (htmlResults.length < endIndex) {
         limit = htmlResults.length;
@@ -77,11 +76,9 @@ function displayResultsStart (htmlResults) {
 }
 
 function displayNextResults (htmlResults) {
-    var newIndexes = increaseIndexes(startIndex, endIndex);
-    startIndex = newIndexes.start;
-    endIndex = newIndexes.end;
-    var limit = endIndex;
-    if (htmlResults.length < endIndex) {
+    increaseIndexes();
+    var limit = $("#endIndex").val();
+    if (htmlResults.length < $("#endIndex").val()) {
         limit = htmlResults.length;
     }
     $("#results").empty();
@@ -91,27 +88,28 @@ function displayNextResults (htmlResults) {
 }
 
 function displayPrevResults (htmlResults) {
-    var newIndexes = decreaseIndexes(startIndex, endIndex);
-    startIndex = newIndexes.start;
-    endIndex = newIndexes.end;
-    if (startIndex < 0) {
-        newIndexes = increaseIndexes(startIndex, endIndex);
-        startIndex = newIndexes.start;
-        endIndex = newIndexes.end;
+    if ($("$startIndex").val() < 0) {
+
     }
-    var limit = endIndex;
+    decreaseIndexes();
     $("#results").empty();
-    for (var i = startIndex; i < limit; i++) {
+    for (var i = $("startIndex").val(); i < $("#endIndex").val(); i++) {
         $("#results").append(htmlResults[i]);
     }
 }
 
-function increaseIndexes(oldStartIndex, oldEndIndex) {
-    return {start: oldStartIndex + 50, end: oldEndIndex + 50}
+function increaseIndexes() {
+    $("#startIndex").val($("#startIndex").val() + 50);
+    console.log($("#startIndex").val());
+    $("#endIndex").val($("#endIndex").val() + 50);
+    console.log($("#endIndex").val());
 }
 
-function decreaseIndexes(oldStartIndex, oldEndIndex) {
-    return {start: oldStartIndex - 50, end: oldEndIndex - 50}
+function decreaseIndexes() {
+    $("#startIndex").val($("#startIndex").val() - 50);
+    console.log($("#startIndex").val());
+    $("#endIndex").val($("#endIndex").val() - 50);
+    console.log($("#endIndex").val());
 }
 
 function highlightMotifs () {
