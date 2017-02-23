@@ -54,8 +54,6 @@ function getResults () {
         else {
             $("#download_link").show().fadeIn(1000);
             if (data.data.length > 0) {
-                //console.log('should append data');
-                console.log(data.data);
                 resultsBuffer = displayResultsStart(data.data);
             }
         }
@@ -63,14 +61,11 @@ function getResults () {
 }
 
 function displayResultsStart (htmlResults) {
-    console.log($("#startIndex").val());
-    console.log($("#endIndex").val());
     var limit = $("#endIndex").val();
     if (htmlResults.length < $("#endIndex").val()) {
         limit = htmlResults.length;
     }
     for (var i = 0; i < limit; i++) {
-        console.log(htmlResults[i]);
         $("#results").append(htmlResults[i]);
     }
     return htmlResults;
