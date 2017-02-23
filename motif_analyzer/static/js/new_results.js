@@ -51,7 +51,7 @@ function countResults () {
             $("#task_progress").text(data.message);
             $('#analysis_completed').text('Completed!');
             clearInterval(interval);
-            getResults();
+            interval = setInterval(getResults, 5000);
         }
     })
 }
@@ -63,11 +63,10 @@ function getResults () {
         if (data.redirect){
             document.location.href = data.redirect;
         }
-        else {
+        else if (data.data.length > 0) {
+            clearInterval(interval);
+            resultsBuffer = displayResultsStart(data.data);
             $("#download_link").show().fadeIn(1000);
-            if (data.data.length > 0) {
-                resultsBuffer = displayResultsStart(data.data);
-            }
         }
     })
 }
