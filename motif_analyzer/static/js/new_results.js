@@ -104,7 +104,7 @@ function increaseIndexes() {
 function decreaseIndexes() {
     $("#startIndex").val(parseInt($("#startIndex").val()) - 50);
     console.log($("#startIndex").val());
-    $("#endIndex").val($(parseInt("#endIndex").val()) - 50);
+    $("#endIndex").val(parseInt($("#endIndex").val()) - 50);
     console.log($("#endIndex").val());
 }
 
