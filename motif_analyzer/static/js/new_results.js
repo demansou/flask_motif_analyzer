@@ -68,6 +68,7 @@ function displayResultsStart (htmlResults) {
         limit = htmlResults.length;
     }
     for (var i = 0; i < limit; i++) {
+        console.log(htmlResults[i]);
         $("#results").append(htmlResults[i]);
     }
     return htmlResults;
