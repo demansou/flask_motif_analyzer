@@ -83,18 +83,18 @@ function displayNextResults (htmlResults) {
         limit = htmlResults.length;
     }
     $("#results").empty();
-    for (var i = startIndex; i < limit; i++) {
+    for (var i = $("#startIndex").val(); i < limit; i++) {
         $("#results").append(htmlResults[i]);
     }
 }
 
 function displayPrevResults (htmlResults) {
-    if ($("$startIndex").val() < 0) {
+    if ($("#startIndex").val() < 0) {
 
     }
     decreaseIndexes();
     $("#results").empty();
-    for (var i = $("startIndex").val(); i < $("#endIndex").val(); i++) {
+    for (var i = $("#startIndex").val(); i < $("#endIndex").val(); i++) {
         $("#results").append(htmlResults[i]);
     }
 }
