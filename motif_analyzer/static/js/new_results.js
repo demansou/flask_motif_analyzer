@@ -56,6 +56,7 @@ function getResults () {
             $("#download_link").show().fadeIn(1000);
             if (data.data.length > 0) {
                 console.log('should append data');
+                console.log(data.data);
                 resultsBuffer = displayResultsStart(data.data);
             }
         }
@@ -63,6 +64,7 @@ function getResults () {
 }
 
 function displayResultsStart (htmlResults) {
+    console.log('begins display results')
     var limit = endIndex;
     if (htmlResults.length < endIndex) {
         limit = htmlResults.length;
