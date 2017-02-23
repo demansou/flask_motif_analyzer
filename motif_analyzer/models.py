@@ -320,7 +320,7 @@ class Result(object):
                 'sequence_description': sequence_description,
                 'sequence': sequence,
                 'analysis': analysis,
-                'html': html,
+                'html_text': html,
                 'has_motif': has_motif,
                 'datetime_added': datetime.utcnow(),
                 'user': user,
