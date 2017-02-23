@@ -65,8 +65,8 @@ function getResults () {
 function displayResultsStart (htmlResults) {
     console.log($("#startIndex").val());
     console.log($("#endIndex").val());
-    var limit = endIndex;
-    if (htmlResults.length < endIndex) {
+    var limit = $("#endIndex").val();
+    if (htmlResults.length < $("#endIndex").val()) {
         limit = htmlResults.length;
     }
     for (var i = 0; i < limit; i++) {
