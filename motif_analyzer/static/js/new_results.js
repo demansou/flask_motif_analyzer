@@ -109,3 +109,10 @@ function increaseIndexes(oldStartIndex, oldEndIndex) {
 function decreaseIndexes(oldStartIndex, oldEndIndex) {
     return {start: oldStartIndex - 50, end: oldEndIndex - 50}
 }
+
+function highlightMotifs () {
+    $.initialize(".motif-string", function () {
+        var re = new RegExp($(this).attr('id'));
+        $(this).highlightRegex(re);
+    });
+}
