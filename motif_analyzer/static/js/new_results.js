@@ -55,7 +55,8 @@ function getResults () {
         else {
             $("#download_link").show().fadeIn(1000);
             if (data.data.length > 0) {
-                resultsBuffer = displayResultsStart(data.data, startIndex, endIndex);
+                console.log('should append data');
+                resultsBuffer = displayResultsStart(data.data);
             }
         }
     })
