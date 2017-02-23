@@ -301,14 +301,15 @@ class Result(object):
     """
 
     @staticmethod
-    def insert_one(query_id=None, sequence_description=None, sequence=None, analysis=None, html=None, has_motif=None,
-                   user=None):
+    def insert_one(query_id=None, sequence_description=None, sequence=None, analysis=None, html_text=None,
+                   has_motif=None, user=None):
         """
         Creates a document and inserts it into MongoDB collection
         :param query_id:
         :param sequence_description:
         :param sequence:
         :param analysis:
+        :param html_text:
         :param has_motif:
         :param user:
         :return ObjectId:
@@ -320,7 +321,7 @@ class Result(object):
                 'sequence_description': sequence_description,
                 'sequence': sequence,
                 'analysis': analysis,
-                'html_text': html,
+                'html_text': html_text,
                 'has_motif': has_motif,
                 'datetime_added': datetime.utcnow(),
                 'user': user,
