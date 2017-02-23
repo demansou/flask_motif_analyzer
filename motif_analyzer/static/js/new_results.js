@@ -3,9 +3,21 @@ $(document).ready(function () {
     highlightMotifs();
     $("#next-results").click(function () {
         displayNextResults(resultsBuffer);
+        if (parseInt($("#endIndex").val()) >= resultsBuffer.length) {
+            $("#next-results").attr('disabled', true);
+        }
+        if (parseInt($("#startIndex").val()) > 0) {
+            $("#prev-results").attr('disabled', false);
+        }
     });
     $("#prev-results").click(function () {
         displayPrevResults(resultsBuffer);
+        if (parseInt($("#startIndex").val()) <= 0) {
+            $("#prev-results").attr('disabled', true);
+        }
+        if (parseInt($("#endIndex").val()) < resultsBuffer.length) {
+            $("#next-results").attr('disabled', false);
+        }
     });
 });
 
@@ -67,6 +79,9 @@ function displayResultsStart (htmlResults) {
     }
     for (var i = 0; i < limit; i++) {
         $("#results").append(htmlResults[i]);
+    }
+    if (parseInt($("#endIndex").val()) < htmlResults.length) {
+        $("#next-results").attr('disabled', false);
     }
     return htmlResults;
 }
