@@ -2,14 +2,9 @@
 
 {% block title %}Select Motif(s){% endblock %}
 
-{% block pageheader %}<h1>Motifs <span class="text-muted">>> Sequences >> Options</span></h1>{% endblock %}
+{% block pageheader %}<h1><span class="text-muted">Sequences >></span> Motifs <span class="text-muted">>> Options</span></h1>{% endblock %}
 
 {% block content %}
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
     <form action="/motifs/" class="form-horizontal" method="post">
         <fieldset class="form-group">
             <div class="row">

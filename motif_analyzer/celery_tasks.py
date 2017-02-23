@@ -1,4 +1,5 @@
-from motif_analyzer import celery
+from . import celery
+from .helpers import format_html
 from .models import Result, Sequence
 
 from bson import ObjectId
@@ -73,11 +74,17 @@ def analyze_sequence(query_id, sequence_description, sequence, motif_list, motif
         }
         sequence_regex_matches.append(regex_data)
 
+    if has_motif:
+        result_html = format_html(sequence_description, sequence, sequence_regex_matches)
+    else:
+        result_html = ''
+
     Result.insert_one(
         query_id=ObjectId(query_id),
         sequence_description=sequence_description,
         sequence=sequence,
         analysis=sequence_regex_matches,
+        html_text=result_html,
         has_motif=has_motif,
         user=user
     )

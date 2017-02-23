@@ -301,7 +301,8 @@ class Result(object):
     """
 
     @staticmethod
-    def insert_one(query_id=None, sequence_description=None, sequence=None, analysis=None, has_motif=None, user=None):
+    def insert_one(query_id=None, sequence_description=None, sequence=None, analysis=None, html=None, has_motif=None,
+                   user=None):
         """
         Creates a document and inserts it into MongoDB collection
         :param query_id:
@@ -312,20 +313,20 @@ class Result(object):
         :param user:
         :return ObjectId:
         """
-        if query_id and sequence_description and sequence and analysis and has_motif is True or has_motif is False\
-                and user:
+        if query_id and sequence_description and sequence and analysis and html \
+                and has_motif is True or has_motif is False and user:
             document = {
                 'query_id': query_id,
                 'sequence_description': sequence_description,
                 'sequence': sequence,
                 'analysis': analysis,
+                'html': html,
                 'has_motif': has_motif,
                 'datetime_added': datetime.utcnow(),
                 'user': user,
             }
             return mongo.db.result.insert_one(document).inserted_id
 
-        print('query_id: %s\nsequence_description: %s\nsequence: %s\nanalysis: %s\nhas_motif: %s\nuser: %s' % (query_id, sequence_description, sequence, analysis, has_motif, user))
         return None
 
     @staticmethod

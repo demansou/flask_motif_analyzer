@@ -5,11 +5,6 @@
 {% block pageheader %}<h1>Create Sequence Collection<br><small>Use the collection creation tool to create a collection to analyze.</small></h1>{% endblock %}
 
 {% block content %}
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
     <form action="/sequences/paste/" class="form-horizontal" method="post">
         <fieldset class="form-group">
             <div class="row">

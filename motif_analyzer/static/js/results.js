@@ -8,7 +8,7 @@ function startAnalysis () {
             document.location.href = data.redirect;
         }
         else {
-            interval = setInterval(countResults, 5000);
+            interval = setInterval(countResults, 1000);
         }
     });
 }

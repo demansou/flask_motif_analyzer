@@ -31,16 +31,18 @@
         <div class="alert alert-danger" id="start_analysis_error" style="display:none;"></div>
         <div class="alert alert-danger" id="count_results_error" style="display:none;"></div>
     </div>
+    <div class="row">
+        <div class="col-xs-6">
+            <button type="button" class="btn btn-default btn-block" id="prev-results">Previous Results</button>
+        </div>
+        <div class="col-xs-6">
+            <button type="button" class="btn btn-default btn-block" id="next-results">Next Results</button>
+        </div>
+    </div>
     <div class="top15" id="results"></div>
 
 {% endblock %}
 
 {% block script %}
-    <script src="/static/js/results.js"></script>
-    <script>
-        $(document).ready(function () {
-            startAnalysis();
-            highlightMotifs();
-        });
-    </script>
+    <script src="/static/js/new_results.js"></script>
 {% endblock %}

@@ -439,7 +439,8 @@ def get_results():
                 'redirect': '/',
                 'data': None,
             })
-        result_list.append(result)
+        if result['has_motif']:
+            result_list.append(result['html_text'])
 
     # delete results from database after moving to list to save hdd space
     Result.delete_many(query_id=ObjectId(request.cookies.get('query_id')))

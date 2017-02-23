@@ -5,11 +5,6 @@
 {% block pageheader %}<h1>Create Motif<br><small>Use the motif building tool to create a motif to analyze sequence collections with.</small></h1>{% endblock %}
 
 {% block content %}
-    {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endif %}
     <form action="/motifs/create/" class="form-horizontal" method="post">
 
         <fieldset class="form-group">
@@ -71,37 +66,5 @@
 {% endblock %}
 
 {% block script %}
-    <script>
-        $(document).ready(function() {
-
-            /* for adding to motif */
-            $('#add_to_motif').click(function() {
-                var selectedMotifList = [];
-
-                $(':checkbox:checked').each(function() {
-                    selectedMotifList.push($(this).val());
-                });
-
-                if (selectedMotifList.length > 1) {
-                    var returnString = '';
-                    for (var i = 0; i < selectedMotifList.length; i++) {
-                        returnString += selectedMotifList[i];
-                    }
-                    $('#motif').val(($('#motif').val() + '[' + returnString + ']'));
-                }
-                else if (selectedMotifList.length === 1) {
-                    $('#motif').val(($('#motif').val() + selectedMotifList[0]))
-                }
-
-                $('input:checkbox').each(function() {
-                    this.checked = false;
-                })
-            });
-
-            /* for clearing motif parts from field and clearing list stored in memory */
-            $('#clear_motif').click(function() {
-                $('#motif').val('');
-            });
-        });
-    </script>
+    <script src="/static/js/motif_create.js"></script>
 {% endblock %}
