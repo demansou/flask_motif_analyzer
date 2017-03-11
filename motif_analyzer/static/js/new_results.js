@@ -1,6 +1,5 @@
 $(document).ready(function () {
     startAnalysis();
-    highlightMotifs();
     $("#next-results").click(function () {
         displayNextResults(resultsBuffer);
         if (parseInt($("#endIndex").val()) >= resultsBuffer.length) {
@@ -79,6 +78,7 @@ function displayResultsStart (htmlResults) {
     for (var i = 0; i < limit; i++) {
         $("#results").append(htmlResults[i]);
     }
+    highlightMotifs();
     if (parseInt($("#endIndex").val()) < htmlResults.length) {
         $("#next-results").attr('disabled', false);
     }
@@ -95,6 +95,7 @@ function displayNextResults (htmlResults) {
     for (var i = $("#startIndex").val(); i < limit; i++) {
         $("#results").append(htmlResults[i]);
     }
+    highlightMotifs();
 }
 
 function displayPrevResults (htmlResults) {
@@ -106,6 +107,7 @@ function displayPrevResults (htmlResults) {
     for (var i = $("#startIndex").val(); i < $("#endIndex").val(); i++) {
         $("#results").append(htmlResults[i]);
     }
+    highlightMotifs();
 }
 
 function increaseIndexes() {
