@@ -204,7 +204,6 @@ def parse_modal_button(motif_match, sequence, sequence_description):
     """
 
     :param motif_match:
-    :param data_key:
     :param sequence:
     :param sequence_description:
     :return:
@@ -230,8 +229,9 @@ def highlight_sequence_motif_frame(motif_data, sequence):
     motif_frame_start = motif_data[0]['span'][0]
     motif_frame_end = motif_data[len(motif_data) - 1]['span'][1]
     # print('start: {0}\tend: {1}'.format(motif_frame_start, motif_frame_end))
-    parsed_sequence = '{0}<strong><span class=\"motif-string\">{1}</span></strong>{2}'.format(
+    parsed_sequence = '{0}<strong><span class=\"motif-string\" id=\"{1}\">{2}</span></strong>{3}'.format(
         sequence[:motif_frame_start],
+        motif_data[0]['group'],
         sequence[motif_frame_start:motif_frame_end],
         sequence[motif_frame_end:]
     )
