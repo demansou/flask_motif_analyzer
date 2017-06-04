@@ -8,7 +8,47 @@
         <p align="center">SCD Analyzer Tool created by
         <a target="_blank" href="http://www.stthom.edu/Academics/School_of_Arts_and_Sciences/Undergraduate/Biology/Index.aqf">University of St. Thomas Bioinformatics</a>
                program.</p>
-        <a role="button" class="btn btn-primary btn-lg center-block" href="/sequences/">Begin Sequence Analysis</a>
+    </div>
+    <div>
+        <form>
+            <fieldset class="form-group">
+                <h1>Start New Query</h1>
+            </fieldset>
+            <fieldset class="form-group">
+                <div class="row">
+                    <label for="collection_name" class="col-xs-3 control-label">Collection Name</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <input type="text" class="form-control" id="collection_name" name="collection_name" required>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="form-group">
+                <div class="row">
+                    <label for="fasta_file" class="col-xs-3 control-label">File Upload</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <div class="input-group">
+                            <label class="input-group-btn">
+                                <span class="btn btn-default">
+                                    Upload FASTA File
+                                    <input type="file" id="fasta_file" name="fasta_file" style="display:none;" required>
+                                </span>
+                            </label>
+                            <input type="text" class="form-control" id="file_display" readonly>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset class="form-group">
+                <div class="row">
+                    <div class="col-sm-8 col-xs-12 top15">
+                        <button class="btn btn-lg btn-primary btn-block" type="submit">Submit New Collection</button>
+                    </div>
+                    <div class="col-sm-3 col-sm-push-1 col-xs-12 top15">
+                        <button class="btn btn-lg btn-danger btn-block" type="reset">Clear Form</button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
     </div>
 {% endblock %}
 
