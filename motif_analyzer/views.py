@@ -11,10 +11,15 @@ def app_home():
     """
     response = app.make_response(render_template('frontpage.html'))
     response.set_cookie('query_id', '')
-    response.set_cookie('motif_id_list', '')
     return response
 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def file_upload():
-    return redirect('/')
+    if request.method == 'GET':
+        response = app.make_response(render_template('upload.html'))
+        return response
+
+    response = app.make_response(render_template('confirmation.html'))
+    response.set_cookie('query_id', '')
+    return response
